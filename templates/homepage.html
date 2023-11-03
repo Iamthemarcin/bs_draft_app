@@ -1,0 +1,113 @@
+<html lang="en">
+    <head>
+        {% load static %}
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+        <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
+        <title> powerdraft </title>
+    </head>
+    
+    
+    <body>
+
+        <div class="container">
+            <div class="row mt-5 align-items-center justify-content-md-center">
+                <div class = "col2">
+                    <img class = 'pl-logo' src="{% static 'images/pd_icon.svg' %}" alt="My image">
+                </div>
+                <div class = "col3 "><h5>Powerdraft {{ MEDIA_URL }} </h5> </div>
+            </div>
+            <div class="row align-items-center justify-content-md-center">
+                <div class="draft-container background-black">
+                    <div class="background-blue" >
+                        <div class = "selected-map">
+                            <div class = map-icon>
+                                <img class = "gamemode-icon" src = "{% static 'images/brawl_ball_icon.png' %}" >
+                            </div>
+                            <div class = "mode-name">
+                                BRAWL BALL
+                            </div>
+                            <div class = "map-name">
+                                Field Goal
+                            </div>
+                        </div>
+                        <div class="wrapper-to-make-overflow-y-visible-because-apparently-you-cant-have-overflow-x-scroll-and-y-visible-which-makes-sense">
+                            
+                            <div class = "brawler-searchbox">
+                                <img class = 'loop-img' src="{% static 'images/search.png' %}">
+                                <input type = "search-text no-padding" id = "search" class = 'search-text' brawler-search placeholder="Search for brawler"></h3>
+                                </div>
+                            
+                            <div class="brawlers-box text-nowrap">
+
+                                <div class="my-row first-row">
+
+                                    {% get_static_prefix as STATIC_URL %}
+
+                                    {% for image in top_row %}
+                                        <img class = "brawler-img" src="{{STATIC_URL}}/images/brawlers/{{image}}" id = "{{image}}" onclick="choose_brawler(this)"> 
+                                    {% endfor %}
+                                </div>
+                                <div class="my-row">
+                                    {% for image in bottom_row %}
+                                        <img class = "brawler-img"  src="{{STATIC_URL}}/images/brawlers/{{image}}" id = "{{image}}" onclick="choose_brawler(this)">
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="picks-box container-fluid" style="width:100%">
+                        <div class = "row no-padding" style="height:100%; width:100%;">
+                            <div class = "col-6 no-padding" style="height:100%;">
+                                <div class = "row team left-team" style="height:100%; width: 100%;">
+                                    <figure id = "p1" class = "pick-image">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 1</figcaption>
+                                    </figure>
+                                    <figure id = "p4" class = "pick-image">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 4</figcaption>
+                                    </figure>
+                                    <figure id = "p5" class = "pick-image pick-leader">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 5</figcaption>
+                                    </figure>
+                                </div>
+                            </div>
+                            <img class = "image-vs" src="{% static 'images/VS.png' %}">
+                            <div class = "col-6 no-padding" style="height:100%;">
+                                <div class = "row team right-team" style="height:100%; width: 100%;">
+                                    <figure id = "p2" class = "pick-image pick-leader">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 2</figcaption>
+                                    </figure>
+                                    <figure id = "p3" class = "pick-image ">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 3</figcaption>
+                                    </figure>
+                                    <figure id = "p6" class = "pick-image">    
+                                        <img src="{% static 'images/player_box.jpg' %}">
+                                        <figcaption class = "player-name">Player 6</figcaption>
+                                    </figure>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // first set the value you will be using.
+            var pic_src = "{% static 'images/pl-logo-bg-4.png' %}"
+
+        </script>
+        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.14.3/dist/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+        <script src="{% static 'js/main.js' %}"></script>
+    </body>
+</html>
+

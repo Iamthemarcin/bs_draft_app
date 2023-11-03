@@ -1,0 +1,254 @@
+
+@font-face {
+    font-family: "LilitaOne";
+    src: url('../fonts/LilitaOne-Regular.ttf');
+    src: url('../fonts/LilitaOne-Regular.ttf') format('truetype');
+  }
+
+
+body {
+    background-color: 7AC4DC;
+}
+
+
+h5 {
+    font-family: 'Poppins';font-size: 3vw;
+}
+.pl-logo{
+    max-width: 16vw;
+}
+.pl-logo-bg{
+    opacity: 0.05;
+    height: 8vw;
+    width:auto;
+    
+}
+
+.draft-container {
+    overflow: hidden;
+    margin-top: 4rem;
+    border: 1px solid #000000;
+    width: 100vw;
+    height: 60vh;
+    border-radius: 4px;
+    border-width: 0px;
+    position: relative;
+}
+
+.background-black{
+    background-color: black;
+    padding-top:6%;
+}
+
+.selected-map{
+    background-image: linear-gradient(95deg, black 15%, rgba(139,160,223,255) 15.5%, rgba(139,160,223,255) 97.5%, black 98%);
+    height:18%;
+    width:25%;
+    position:absolute;
+    top:-1%;
+    border-bottom: 0.5vh black solid;
+    clip-path: polygon(0 0, 100% 0%, 98% 100%, 0% 100%);
+}
+
+.gamemode-icon{
+    width:25%;
+    height:100%;
+    position:absolute;
+    left:12.5%;
+    top:5%;
+}
+.mode-name{
+    position:absolute;
+    color: white;
+    font-size: 2.5vh;
+    right:20%;
+    transform: translate(10%);
+    white-space:nowrap;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 0.3vh 0 #000;
+    font-family: "LilitaOne";
+}
+
+.map-name{
+    position:absolute;
+    color: #97b0ef;
+    font-size: 1.75vh;
+    bottom:0;
+    right: 20%;
+    transform:translate(10%);
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    font-family: "LilitaOne";
+    white-space: nowrap;
+}
+
+.background-blue{
+    padding-top:6.5%;
+    position: relative;
+    border-width: inherit;
+    height: 66%;
+    background-image:url('../images/test3.png'),
+    radial-gradient(circle, rgba(7, 117, 193, 1) 6%, rgba(5, 69, 169, 1) 91%);
+    background-size:100%,100%;
+    animation-name: icons-movement;
+    animation-duration: 75s;
+    animation-iteration-count: infinite;
+}
+@keyframes icons-movement {
+    0% {background-position-y: 0;}
+    50% {background-position-y: -236px;}
+    100% {ackground-position-y: 0px;}
+  }
+
+.brawlers-box::-webkit-scrollbar {
+    display: none;
+  }
+.brawlers-box{
+    position:relative;
+    background-color: black;
+    height:96%;
+    overflow-x: scroll;
+    width:100%;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    padding-left:4vw;
+    overflow-y: visible;
+
+}
+
+.wrapper-to-make-overflow-y-visible-because-apparently-you-cant-have-overflow-x-scroll-and-y-visible-which-makes-sense{
+    overflow-y:visible;
+    position: relative;
+}
+
+.brawler-searchbox{
+    position:absolute;
+    right:0;
+    background-color: black;
+    width: 25%;
+    height:15%;
+    top:-15%;
+    clip-path: polygon(1% 0, 100% 0%, 100% 100%, 0% 100%);
+    color: white;
+    font-family: 'LilitaOne';
+}
+
+.loop-img{
+    position: absolute;
+    height:85%;
+    opacity:50%;
+    top:50%;
+    left:5%;
+    transform: translate(0,-45%);
+    opacity:50%;
+}
+
+.search-text{
+    position: absolute;
+    right:10%;
+    top:50%;
+    transform: translate(0,-45%);
+    object-fit: contain;
+    height:100%;
+    width:70%;
+    background-color: black;
+    border: #000;
+    color:white;
+    text-align: right;
+    font-size: 2.5vh;
+}
+.search-text:focus{
+    outline: none;
+}
+.hide{
+    display: none !important;
+    overflow: hidden;
+}
+
+.my-row>img{
+    height:50%;
+    width:14%;
+    display: inline;
+    text-decoration: none;
+    padding:0.9vh;
+    margin:none;
+}
+
+.my-row>img:hover{
+    cursor: pointer;
+}
+
+.picks-box{
+    background: rgb(35,115,254);
+    background-image: linear-gradient(95deg, rgba(35,115,254,1) 48.5%, rgba(1,1,3,1) 48.7%, rgba(1,1,3,1) 49%, rgba(76,9,27,1) 49.2%);
+    height:32.8%;
+    margin-top:0.2em;
+    position: relative;
+}
+
+.left-team{
+    justify-content: flex-end;
+    padding-right:3.3vw;
+    margin:0;
+}
+
+.image-vs{
+    position: absolute;
+    left:50%;
+    top:50%;
+    transform:translate(-75%,-50%);
+    width:5.5%
+    
+}
+.right-team{
+    justify-content: flex-start;
+    padding-left:1.6vw;
+    margin:0;
+}
+.no-padding{
+    padding:0%;
+    margin:0%;
+}
+
+
+.team>.pick-image{
+    height:70%;
+    padding-left: 1%;
+    padding-right:1%;
+    position:relative;
+    align-self: center;
+}
+.team>.pick-image>img{
+    width: 100%;
+    height: 100%;
+}
+
+.team>.pick-leader{
+    position:relative;
+    display: inline-block;
+}
+.team>.pick-leader::after
+{
+    content: '';
+    display: inline-block;
+    position: absolute;
+    width:40%;
+    height:50%;
+    top: 4%;
+    left: 50%;
+    transform:translate(-50%,-50%);
+    background-image:url('../images/crown.png');
+    background-size:contain;
+    background-repeat: no-repeat;
+}
+
+.player-name{
+    position: absolute;
+    bottom:2.7vh;
+    left: 50%;
+    transform: translate(-50%);
+    color: pink;
+    font-size: 1.6vh;
+    white-space: nowrap;
+    z-index: 2;
+}
+
+/* radial-gradient(circle, rgba(7, 117, 193, 1) 6%, rgba(5, 69, 169, 1) 91%); */
