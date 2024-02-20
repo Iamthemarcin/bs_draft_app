@@ -30,9 +30,19 @@ function brawler_search(){
 }
 brawler_search()
 
-
 pick_number = 1
 function choose_brawler(brawler){
+  fetch(`info/${brawler.id.split(".")[0]}`, {
+    method: "GET",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log(data['context']);
+  });
+  
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
   //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it

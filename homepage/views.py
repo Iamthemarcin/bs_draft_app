@@ -4,6 +4,7 @@ from PIL import Image
 import requests
 import os
 import random
+import json
 from io import BytesIO
 from django.conf import settings
 
@@ -14,8 +15,11 @@ def search_response(data, search_word, chosen_mode, results_list):
         for key,value in data.items():
             #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
             if chosen_mode:
-                if search_word == key and chosen_mode in value and 'header' not in value: #aight i tried returning it but it would require me to use the yield generator stuff and then iterate over the result??? there has to be a better way of returning it without using a list xd
-                    results_list.append(value)
+                if search_word.lower() == key.lower():
+                    clean_value = value.replace('-', '')
+                    print(chosen_mode, ' ', clean_value)
+                    if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
+                        results_list.append(value)
             else:
                 if search_word == key:
                     results_list.append(value)
@@ -25,13 +29,12 @@ def search_response(data, search_word, chosen_mode, results_list):
         for i in data:
             search_response(i, search_word, chosen_mode, results_list)
 
-
 def update_map_list(): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
 #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have not gained or lost any trophies. Those games
 #     were played in the competetive mode. Then just go through maps in those games and add them to a set. after that i should have all the possible power league maps.
     path = '{}/map_list.txt'.format(settings.STATICFILES_DIRS[0])
     headers = {
-        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjY1NGM2MzQyLWUxMGQtNDhhNC04NzcwLWM4ZDBkZGRjNmY3NSIsImlhdCI6MTcwODAwNjQ4MCwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiJdLCJ0eXBlIjoiY2xpZW50In1dfQ.9fY5kKDoBHKg4AE_thJDjK107U9wiMVlXgu08UUz9_lrvz43fD5ro-B714FHFCve0g3-mUbSBupsuyh7LNzcRg"
+        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
     map_dict = {}
 
@@ -63,38 +66,62 @@ def update_map_list(): #allright, so there isnt any way to get the current power
         all_games = all_games.json()
         look_for_ranked_games(all_games, map_dict)
 
+    def clean_up_the_maps(maps):
+        for key, value in maps.items():
+            value = list(value)
+            maps[key] = value
+
+        maps = str(maps)
+        clean_map_dict = maps.replace("'","\"").replace("\"s", "'s")
+        return clean_map_dict
+
+    map_dict = clean_up_the_maps(map_dict)
     map_list = open(path, 'w')
     map_list.write('{}'.format(map_dict))
     map_list.close()
 
 def index(request):
-    #update_map_list()  whenever a power league update comes use this function XD
+    #whenever a power league update comes use this function XD
+    #update_map_list()  
+
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])
     map_path = '{}/map_list.txt'.format(settings.STATICFILES_DIRS[0])
     img_list = os.listdir(path)
     half = len(img_list)//2
     top_row = img_list[:half]
     bottom_row = img_list[half:]
-    events_request = requests.get('https://api.brawlapi.com/v1/events')
-    events_json = events_request.json()
-    
+    gamemodes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
+    gamemodes_json = gamemodes_request.json()    
     #choose a random map and mode
 
-    map_list = open(path, 'w')
-    map_list.write('{}'.format(map_dict))
-    map_list.close()
-
-
-    game_modes = ['Brawl-Ball', 'Gem-Grab', 'Heist', 'Knockout', 'Wipeout', 'Hot-Zone'] #gotta get those from somewhere else future me, i aint updating this by hand
-    chosen_mode = random.choice(game_modes)
+    with(open(map_path, 'r')) as map_dict_txt:
+        map_dict_str = map_dict_txt.read().rstrip('\n')
+    map_dict_txt.close()
+    map_dict = json.loads(map_dict_str)
+    random_mode = random.sample(map_dict.keys(), 1)[0]
+    chosen_map = random.sample(map_dict[random_mode],1)[0]
     mode_icon_link = []
 
     # find the icon for the gamemode, could also just make a list and save them locally every season,not sure, ill put it in a function in case i wanna do that.
-    search_response(events_json, 'imageUrl', chosen_mode, mode_icon_link)
-    chosen_mode = chosen_mode.replace('-',' ')
+    search_response(gamemodes_json, 'imageUrl', random_mode, mode_icon_link)
+    
+    def camel_case_to_normal(s):
+        words = []
+        start = 0
+        for i, c in enumerate(s[1:], start = 1):
+            if c.isupper():
+                words.append(s[start:i].capitalize())
+                start = i
+        
+        words.append(s[start:].capitalize())
+        result = ' '.join(words)
+        return result
+    chosen_mode = camel_case_to_normal(random_mode)
 
+ 
+    print(mode_icon_link)
     # update_brawler_pics(request) # <----- everytime you want to update the brawler run this, for now xd maybe later make this run every week or something
-    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link[0], 'chosen_mode': chosen_mode}
+    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link[0], 'chosen_mode': chosen_mode, 'chosen_map': chosen_map }
     return render(request, "homepage.html", context)
 
 
