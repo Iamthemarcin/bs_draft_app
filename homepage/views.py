@@ -7,6 +7,7 @@ import random
 import json
 from io import BytesIO
 from django.conf import settings
+from picks_manager.models import Map, Mode
 
 
 #function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
@@ -66,23 +67,45 @@ def update_map_list(): #allright, so there isnt any way to get the current power
         all_games = all_games.json()
         look_for_ranked_games(all_games, map_dict)
 
-    def clean_up_the_maps(maps):
-        for key, value in maps.items():
-            value = list(value)
-            maps[key] = value
+    def camel_case_to_normal(s):
+        words = []
+        start = 0
+        for i, c in enumerate(s[1:], start = 1):
+            if c.isupper():
+                words.append(s[start:i].capitalize())
+                start = i
+        
+        words.append(s[start:].capitalize())
+        result = ' '.join(words)
+        return result
+    
+    def save_maps(maps):
 
-        maps = str(maps)
-        clean_map_dict = maps.replace("'","\"").replace("\"s", "'s")
-        return clean_map_dict
+        for mode, map_set in maps.items():
+            map_list = list(map_set)
+            maps[mode] = map_list 
+            mode = mode.replace("'","\"").replace("\"s", "'s")
+            mode = camel_case_to_normal(mode)
+            
+            db_mode = Mode(mode_name = mode)
+            db_mode.save()
+            for map in map_list:
+                map = map.replace("'","\"").replace("\"s", "'s")
 
-    map_dict = clean_up_the_maps(map_dict)
-    map_list = open(path, 'w')
-    map_list.write('{}'.format(map_dict))
-    map_list.close()
+                db_map = Map(map_name = map, mode_name= db_mode)
+                db_map.save()
+        return 
+
+    save_maps(map_dict)
+    
+
+    # map_list = open(path, 'w')
+    # map_list.write('{}'.format(map_dict))
+    # map_list.close()
 
 def index(request):
     #whenever a power league update comes use this function XD
-    #update_map_list()  
+    update_map_list()  
 
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])
     map_path = '{}/map_list.txt'.format(settings.STATICFILES_DIRS[0])
@@ -98,27 +121,13 @@ def index(request):
         map_dict_str = map_dict_txt.read().rstrip('\n')
     map_dict_txt.close()
     map_dict = json.loads(map_dict_str)
-    random_mode = random.sample(map_dict.keys(), 1)[0]
-    chosen_map = random.sample(map_dict[random_mode],1)[0]
+    chosen_mode = random.sample(map_dict.keys(), 1)[0]
+    chosen_map = random.sample(map_dict[chosen_mode],1)[0]
     mode_icon_link = []
 
     # find the icon for the gamemode, could also just make a list and save them locally every season,not sure, ill put it in a function in case i wanna do that.
-    search_response(gamemodes_json, 'imageUrl', random_mode, mode_icon_link)
-    
-    def camel_case_to_normal(s):
-        words = []
-        start = 0
-        for i, c in enumerate(s[1:], start = 1):
-            if c.isupper():
-                words.append(s[start:i].capitalize())
-                start = i
-        
-        words.append(s[start:].capitalize())
-        result = ' '.join(words)
-        return result
-    chosen_mode = camel_case_to_normal(random_mode)
+    search_response(gamemodes_json, 'imageUrl', chosen_mode, mode_icon_link)
 
- 
     print(mode_icon_link)
     # update_brawler_pics(request) # <----- everytime you want to update the brawler run this, for now xd maybe later make this run every week or something
     context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link[0], 'chosen_mode': chosen_mode, 'chosen_map': chosen_map }
