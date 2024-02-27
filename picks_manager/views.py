@@ -6,13 +6,41 @@ import requests
 from io import BytesIO
 from django.conf import settings
 from picks_manager.models import Map, Mode
-from homepage.views import search_response
 # Create your views here.
 
 def brawler_picks(request, brawler):
     print(brawler)
     return JsonResponse({'context': brawler})
 
+#function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
+def search_response(data, search_word, chosen_mode, results_list):
+    if isinstance(data,dict):
+        for key,value in data.items():
+            #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
+            if chosen_mode:
+                if search_word.lower() == key.lower():
+                    clean_value = value.replace('-', '')
+                    if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
+                        results_list.append(value)
+            else:
+                if search_word == key:
+                    results_list.append(value)
+            if isinstance(value, dict) or isinstance(value, list):
+                search_response(value, search_word, chosen_mode, results_list)
+    if isinstance(data, list):
+        for i in data:
+            search_response(i, search_word, chosen_mode, results_list)
+
+def update_modes():
+    all_my_modes = Mode.objects.all()
+    all_modes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
+    all_modes = all_modes_request.json()
+    for mode in all_my_modes:
+        result = []
+        search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
+        mode.mode_icon = result[0]
+        mode.save()
+#update_modes()
 def update_brawler_pics():
     all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
     all_brawlers_json = all_brawlers_request.json()

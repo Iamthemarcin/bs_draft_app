@@ -8,6 +8,9 @@ class Mode(models.Model):
     mode_name = models.CharField(max_length = 15, primary_key = True)
     mode_icon = models.CharField(max_length = 200)
 
+    def __str__(self):
+        return self.mode_name
+
 class Map(models.Model):
     map_name = models.CharField(max_length = 30)
     mode_name = models.ForeignKey(Mode, on_delete = models.CASCADE)

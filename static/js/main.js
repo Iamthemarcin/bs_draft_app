@@ -1,4 +1,3 @@
-
 function scroll_me_daddy(){
   var scrollable_container = document.getElementsByClassName('brawlers-box')[0];
   scrollable_container.addEventListener("wheel", function (e) {
@@ -13,6 +12,18 @@ function scroll_me_daddy(){
     });
   }
 scroll_me_daddy()
+
+function change_font_size(){
+  map_name = $( ".map-name")
+  len = map_name.text().length
+  if (len > 20){
+    font_size = 1.75 - (9/len)/5
+    console.log(font_size)
+    map_name.css( "font-size", `${font_size}vh` )
+    console.log('hello')
+  }
+}
+change_font_size()
 
 function brawler_search(){
   const brawlers = document.getElementsByClassName("brawler-img")
@@ -32,6 +43,8 @@ brawler_search()
 
 pick_number = 1
 function choose_brawler(brawler){
+  
+  //send the picked brawler info to the server, n wait for response
   fetch(`info/${brawler.id.split(".")[0]}`, {
     method: "GET",
     headers: {
@@ -42,7 +55,6 @@ function choose_brawler(brawler){
   .then(data => {
     console.log(data['context']);
   });
-  
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
   //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it
@@ -84,8 +96,6 @@ function choose_brawler(brawler){
       $('.brawler-picked').removeClass('brawler-picked');
       pick_number = 1
     }
-
-
   }
 }
 
