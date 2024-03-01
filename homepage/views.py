@@ -1,8 +1,6 @@
 from django.shortcuts import render
-import requests
 import os
 import random
-import json
 from django.conf import settings
 from picks_manager.models import Map,Mode
 

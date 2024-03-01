@@ -43,4 +43,12 @@ class WinRate(models.Model):
     win_rate = models.FloatField(validators=PERCENTAGE_VALIDATOR)
     use_rate = models.FloatField(validators=PERCENTAGE_VALIDATOR)
 
+    def __str__(self):
+        return self.map_name + ' ' + self.brawler_name
+    
+class Player(models.Model):
+    player_tag = models.CharField(max_length = 20, primary_key = True)
+
+class LastPlayerChecked(models.Model):
+    last_player_checked = models.IntegerField(primary_key= True, default = 0)
 # Create your models here.
