@@ -8,6 +8,10 @@ from django.conf import settings
 from .models import Map, Mode, Player, LastPlayerChecked
 # Create your views here.
 
+### TODO increment the player search stuff
+
+
+
 def brawler_picks(request, brawler):
     print(brawler)
     return JsonResponse({'context': brawler})
@@ -18,9 +22,8 @@ def brawler_picks(request, brawler):
 
 
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
--1. get_player_tags
-0. update_brawler_pics
-1. get player tags
+0. get_player_tags
+1. update_brawler_pics
 2. update map list
 3. update modes
 """
@@ -57,7 +60,7 @@ class ManageDB:
         'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
 
-
+    @staticmethod
     def update_modes():
         all_my_modes = Mode.objects.all()
         all_modes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
@@ -67,8 +70,8 @@ class ManageDB:
             search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
             mode.mode_icon = result[0]
             mode.save()
-#update_modes()
 
+    @staticmethod
     def update_brawler_pics():
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
         all_brawlers_json = all_brawlers_request.json()
@@ -99,7 +102,6 @@ class ManageDB:
                 if not Player.objects.filter(player_tag = player_tag).exists():
                     db_player_tag.save()
         return
-#get_player_tags()
 
     def update_map_list(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
@@ -122,17 +124,22 @@ class ManageDB:
                             map_dict[ranked_game_mode] = {ranked_game_map}
 
         #I only want to send 100 requests per map update
-        player_num = LastPlayerChecked.objects.first().last_player_checked
-        player_ammount = Player.objects.count()
-        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them. If I went through all of them then go back to the beggining.
-        if player_num > player_ammount - 100:
-            player_num = player_num - player_ammount
-
-        if not player_num: #set the variable if its not in db
-            LastPlayerChecked().save()
+        player_num_object = LastPlayerChecked.objects.first()
+        try:
+            player_num = player_num_object.last_player_checked
+        except AttributeError:
+            player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
+
+        player_ammount = Player.objects.count()
+        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
+        if player_num > player_ammount - 100:
+            player_num = player_num - player_ammount            
         
         players = Player.objects.all()[player_num:player_num+100]
+        player_num_object.delete()
+        s = LastPlayerChecked(last_player_checked = player_num + 100)
+        s.save()
 
         for player in players:
             player_tag = player.player_tag
@@ -142,7 +149,7 @@ class ManageDB:
             all_games = all_games.json()
             look_for_ranked_games(all_games, map_dict)
 
-    
+
         def camel_case_to_normal(s):
             words = []
             start = 0
@@ -170,5 +177,10 @@ class ManageDB:
             return 
 
         save_maps(map_dict)
+
 m = ManageDB()
+#m.update_brawler_pics()
+#m.get_player_tags()
 #m.update_map_list()
+#m.update_modes()
+

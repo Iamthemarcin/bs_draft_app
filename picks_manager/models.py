@@ -51,4 +51,7 @@ class Player(models.Model):
 
 class LastPlayerChecked(models.Model):
     last_player_checked = models.IntegerField(primary_key= True, default = 0)
+    class Meta:
+        verbose_name_plural = "LastPlayerChecked"
+
 # Create your models here.
