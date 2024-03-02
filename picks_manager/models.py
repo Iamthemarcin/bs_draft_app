@@ -14,6 +14,7 @@ class Mode(models.Model):
 class Map(models.Model):
     map_name = models.CharField(max_length = 30)
     mode_name = models.ForeignKey(Mode, on_delete = models.CASCADE)
+    games_played = models.IntegerField()
 
 class Brawler(models.Model):
 
@@ -24,7 +25,7 @@ class Brawler(models.Model):
     RARE = "RARE"
 
     BRAWLER_RARITIES = [
-        (LEG, "Legendaru"),
+        (LEG, "Legendary"),
         (MYTH, "Mythical"),
         (EPIC,  "Epic"),
         (SR, "Super rare"),

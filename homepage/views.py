@@ -2,7 +2,7 @@ from django.shortcuts import render
 import os
 import random
 from django.conf import settings
-from picks_manager.models import Map,Mode
+from picks_manager.models import Map
 
 
 def index(request):
@@ -18,8 +18,6 @@ def index(request):
     chosen_mode = chosen_map_obj.mode_name
     chosen_map = chosen_map_obj.map_name
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
-
-    # update_brawler_pics(request) # <----- everytime you want to update the brawler run this, for now xd maybe later make this run every week or something
     context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map }
     return render(request, "homepage.html", context)
 

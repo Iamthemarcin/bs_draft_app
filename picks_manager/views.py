@@ -5,7 +5,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 from django.conf import settings
-from .models import Map, Mode, Player, LastPlayerChecked
+from .models import Map, Mode, Player, LastPlayerChecked, Brawler
 # Create your views here.
 
 ### TODO increment the player search stuff
@@ -23,9 +23,11 @@ def brawler_picks(request, brawler):
 
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
 0. get_player_tags
-1. update_brawler_pics
-2. update map list
-3. update modes
+0. update_brawler_list
+0. update_brawler_pics
+0. update map list
+
+1. update modes
 """
 
 #function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
@@ -59,6 +61,16 @@ class ManageDB:
     headers = {
         'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
+    @staticmethod
+    def update_brawler_list():
+        all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
+        all_brawlers_json = all_brawlers_request.json()
+        for brawler in all_brawlers_json['list']:
+            brawler_name = brawler['name']
+            rarity = brawler['rarity']['name']
+            image_url = brawler['imageUrl']
+            brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url)
+            brawler.save()
 
     @staticmethod
     def update_modes():
@@ -106,50 +118,24 @@ class ManageDB:
     def update_map_list(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
-        map_dict = {}
         def look_for_ranked_games(game_data, map_dict):
             if not 'items' in game_data:
                 print("No games retrieved")
                 return 
             for battles in game_data['items']:         
                 if battles['battle']:
-                    battle_type = battles['battle']['type']      
-                    if battle_type == 'soloRanked' or battle_type == 'teamRanked':
+                    battle_type = battles['battle']['type']  
+                    battle_mode = battles['battle']['mode'] #TODO remove <-- when pl is no longer down  
+                    if battle_mode == 'gemGrab' or  battle_type == 'soloRanked' or battle_type == 'teamRanked': #<--TODO remove first OR when pl is up
                         
                         ranked_game_map = str(battles['event']['map'])
                         ranked_game_mode = str(battles['battle']['mode'])
+                        
                         if ranked_game_mode in map_dict:
                             map_dict[ranked_game_mode].add(ranked_game_map)
                         else:
                             map_dict[ranked_game_mode] = {ranked_game_map}
-
-        #I only want to send 100 requests per map update
-        player_num_object = LastPlayerChecked.objects.first()
-        try:
-            player_num = player_num_object.last_player_checked
-        except AttributeError:
-            player_num_object = LastPlayerChecked(last_player_checked = 0)
-            player_num = 0
-
-        player_ammount = Player.objects.count()
-        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
-        if player_num > player_ammount - 100:
-            player_num = player_num - player_ammount            
         
-        players = Player.objects.all()[player_num:player_num+100]
-        player_num_object.delete()
-        s = LastPlayerChecked(last_player_checked = player_num + 100)
-        s.save()
-
-        for player in players:
-            player_tag = player.player_tag
-            player_tag = player_tag.replace('#', '')
-            request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag)
-            all_games = requests.get(request_link, self.headers)
-            all_games = all_games.json()
-            look_for_ranked_games(all_games, map_dict)
-
-
         def camel_case_to_normal(s):
             words = []
             start = 0
@@ -171,16 +157,48 @@ class ManageDB:
                 db_mode.save()
                 for map in map_list:
                     map = map.replace("'","\"").replace("\"s", "'s")
-                    db_map = Map(map_name = map, mode_name= db_mode) 
-                    if not Map.objects.filter(map_name= map, mode_name = db_mode).exists():
-                        db_map.save()
-            return 
+                    try:
+                        db_map = Map.objects.get(map_name = map, mode_name= db_mode) 
+                        db_map(games_played = db_map.games_played + 1)
+                    #if map doesnt exist create it, if it does add a game played to the map
+                    except:
+                        Map(map_name = map, mode_name= db_mode, games_played = 1).save()
+                        return
+        
+        map_dict = {}
+        #I only want to send ammount_of_battlelogs requests per map update call
+        player_num_object = LastPlayerChecked.objects.first()
+        try:
+            player_num = player_num_object.last_player_checked
+        except AttributeError:
+            player_num_object = LastPlayerChecked(last_player_checked = 0)
+            player_num = 0
+        ammount_of_battlelogs = 10
+        player_ammount = Player.objects.count()
+        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
+        if player_num > player_ammount - ammount_of_battlelogs:
+            player_num = player_num - player_ammount            
+        
+        players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
+        player_num_object.delete()
+        s = LastPlayerChecked(last_player_checked = player_num + ammount_of_battlelogs)
+        s.save()
+        #retrieve last games from players
+        for player in players:
+            player_tag = player.player_tag
+            player_tag = player_tag.replace('#', '')
+            request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag)
+            all_games = requests.get(request_link, self.headers)
+            all_games = all_games.json()
+            look_for_ranked_games(all_games, map_dict)
+        save_maps(map_dict)      
+        return 
 
-        save_maps(map_dict)
 
 m = ManageDB()
+#m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_map_list()
+m.update_map_list()
 #m.update_modes()
 
