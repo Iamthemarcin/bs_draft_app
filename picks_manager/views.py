@@ -5,7 +5,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 from django.conf import settings
-from .models import Map, Mode, Player, LastPlayerChecked, Brawler
+from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate
 # Create your views here.
 
 ### TODO increment the player search stuff
@@ -30,24 +30,6 @@ def brawler_picks(request, brawler):
 1. update modes
 """
 
-#function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
-def search_response(data, search_word, chosen_mode, results_list):
-    if isinstance(data,dict):
-        for key,value in data.items():
-            #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
-            if chosen_mode:
-                if search_word.lower() == key.lower():
-                    clean_value = value.replace('-', '')
-                    if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
-                        results_list.append(value)
-            else:
-                if search_word == key:
-                    results_list.append(value)
-            if isinstance(value, dict) or isinstance(value, list):
-                search_response(value, search_word, chosen_mode, results_list)
-    if isinstance(data, list):
-        for i in data:
-            search_response(i, search_word, chosen_mode, results_list)
 
 
 def update_win_rate():
@@ -61,6 +43,27 @@ class ManageDB:
     headers = {
         'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
+    
+    #function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
+    def search_response(data, search_word, chosen_mode, results_list):
+        if isinstance(data,dict):
+            for key,value in data.items():
+                #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
+                if chosen_mode:
+                    if search_word.lower() == key.lower():
+                        clean_value = value.replace('-', '')
+                        if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
+                            results_list.append(value)
+                else:
+                    if search_word == key:
+                        results_list.append(value)
+                if isinstance(value, dict) or isinstance(value, list):
+                    ManageDB.search_response(value, search_word, chosen_mode, results_list)
+        if isinstance(data, list):
+            for i in data:
+                ManageDB.search_response(i, search_word, chosen_mode, results_list)
+
+    
     @staticmethod
     def update_brawler_list():
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
@@ -79,7 +82,7 @@ class ManageDB:
         all_modes = all_modes_request.json()
         for mode in all_my_modes:
             result = []
-            search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
+            ManageDB.search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
             mode.mode_icon = result[0]
             mode.save()
 
@@ -107,35 +110,93 @@ class ManageDB:
             top_players = requests.get(f'https://api.brawlstars.com/v1/rankings/{country}/players', self.headers)
             top_players = top_players.json()
             top_players_tags = []
-            search_response(top_players,'tag', None, top_players_tags)
+            ManageDB.search_response(top_players,'tag', None, top_players_tags)
 
             for player_tag in top_players_tags:
                 db_player_tag = Player(player_tag = player_tag)
                 if not Player.objects.filter(player_tag = player_tag).exists():
                     db_player_tag.save()
         return
+    @staticmethod
+    def update_win_rate(player_tag, result, teams, map):
+        player_team = 1
+        team_0_brawlers = []
+        team_1_brawlers = []
+
+        #find which team our player was a part of 
+        for player in teams[0]:
+            team_0_brawlers.append(player['brawler']['name'])
+            if player['tag'] == player_tag:
+                player_team = 0
+        
+        if result == 'victory':
+            winning_team = player_team
+        else: #if player team is 1 and he lost, winning team is 0. if player team is 0 and he lost, winning team is 1.
+            winning_team = 1 - player_team
+        
+        for player in teams[winning_team]:
+            brawler_name = player['brawler']['name']
+            brawler = Brawler.objects.get(brawler_name = brawler_name)
+            
+            try:
+                wr_obj = WinRate(brawler_name = brawler, map_name = map.map_name)
+                wr_obj.games_played += 1
+                wr_obj.games_won += 1
+                wr_obj.save()
+            except WinRate.DoesNotExist:
+                WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 1, use_rate = 1/map.games_played).save()
+        
+        for player in teams[1-winning_team]:
+            brawler_name = player['brawler']['name']
+            brawler = Brawler.objects.get(brawler_name = brawler_name)
+
+            try:
+                wr_obj = WinRate(brawler_name = brawler, map_name = map.map_name)
+                wr_obj.games_played += 1
+                wr_obj.save()
+            except WinRate.DoesNotExist:
+                WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
+        return
 
     def update_map_list(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
-        def look_for_ranked_games(game_data, map_dict):
+        def look_for_ranked_games(game_data, player_tag):
             if not 'items' in game_data:
                 print("No games retrieved")
                 return 
             for battles in game_data['items']:         
                 if battles['battle']:
                     battle_type = battles['battle']['type']  
-                    battle_mode = battles['battle']['mode'] #TODO remove <-- when pl is no longer down  
-                    if battle_mode == 'gemGrab' or  battle_type == 'soloRanked' or battle_type == 'teamRanked': #<--TODO remove first OR when pl is up
+                    if battle_type == 'soloRanked' or battle_type == 'teamRanked':
                         
                         ranked_game_map = str(battles['event']['map'])
                         ranked_game_mode = str(battles['battle']['mode'])
+
+                        #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho so gotta make another call.
+                        #wont make the call in this funciton tho, too much stuff going on already 
+
+                        mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
+                        mode = camel_case_to_normal(mode)
+                        db_mode = Mode(mode_name = mode)
+                        db_mode.save()
+                        map = ranked_game_map.replace("'","\"").replace("\"s", "'s")
+                        try:
+                            db_map = Map.objects.get(map_name = map, mode_name= mode) 
+                            db_map.games_played += 1
+                            db_map.save()
+                        #if map doesnt exist create it, if it does add a game played to the map
+                        except:
+                            db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
+                            db_map.save()
                         
-                        if ranked_game_mode in map_dict:
-                            map_dict[ranked_game_mode].add(ranked_game_map)
-                        else:
-                            map_dict[ranked_game_mode] = {ranked_game_map}
-        
+                        #this part is for wr calcualting
+                        result = battles['battle']['result']
+                        teams = battles['battle']['teams']
+                        #ManageDB.update_win_rate(player_tag, result, teams, db_map)    
+                            
+                        return
+            
         def camel_case_to_normal(s):
             words = []
             start = 0
@@ -147,25 +208,6 @@ class ManageDB:
             result = ' '.join(words)
             return result
         
-        def save_maps(maps):
-            for mode, map_set in maps.items():
-                map_list = list(map_set)
-                maps[mode] = map_list 
-                mode = mode.replace("'","\"").replace("\"s", "'s")
-                mode = camel_case_to_normal(mode)
-                db_mode = Mode(mode_name = mode)
-                db_mode.save()
-                for map in map_list:
-                    map = map.replace("'","\"").replace("\"s", "'s")
-                    try:
-                        db_map = Map.objects.get(map_name = map, mode_name= db_mode) 
-                        db_map(games_played = db_map.games_played + 1)
-                    #if map doesnt exist create it, if it does add a game played to the map
-                    except:
-                        Map(map_name = map, mode_name= db_mode, games_played = 1).save()
-                        return
-        
-        map_dict = {}
         #I only want to send ammount_of_battlelogs requests per map update call
         player_num_object = LastPlayerChecked.objects.first()
         try:
@@ -173,7 +215,9 @@ class ManageDB:
         except AttributeError:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
-        ammount_of_battlelogs = 10
+
+        ammount_of_battlelogs = 5  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!!
+
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
         if player_num > player_ammount - ammount_of_battlelogs:
@@ -186,12 +230,11 @@ class ManageDB:
         #retrieve last games from players
         for player in players:
             player_tag = player.player_tag
-            player_tag = player_tag.replace('#', '')
-            request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag)
+            player_tag_link = player_tag.replace('#', '')
+            request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag_link)
             all_games = requests.get(request_link, self.headers)
             all_games = all_games.json()
-            look_for_ranked_games(all_games, map_dict)
-        save_maps(map_dict)      
+            look_for_ranked_games(all_games, player_tag)
         return 
 
 
@@ -200,5 +243,5 @@ m = ManageDB()
 #m.update_brawler_pics()
 #m.get_player_tags()
 m.update_map_list()
-#m.update_modes()
+m.update_modes()
 
