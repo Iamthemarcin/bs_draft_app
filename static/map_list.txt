@@ -1,1 +1,0 @@
-{"knockout": ["Close Quarters", "Belle's Rock", "Out in the Open"], "gemGrab": ["Stay in your Lane", "Open Space", "Last Stop"], "hotZone": ["Open Zone", "The Great Divide", "Ring of Fire"], "brawlBall": ["Backyard Bowl", "Triple Dribble", "Winter Party"], "heist": ["Tornado Ring", "Bridge Too Far", "Riverbed"], "bounty": ["Shooting Star", "Layer Bake", "The Great Open"]}

@@ -5,6 +5,7 @@ from PIL import Image
 import requests
 from io import BytesIO
 from django.conf import settings
+from django.templatetags.static import static
 from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate
 # Create your views here.
 
@@ -32,8 +33,6 @@ def brawler_picks(request, brawler):
 
 
 
-def update_win_rate():
-    return
 
 #updating what kinda modes there are in powerleague.
 # the way to do it is: run the update_map_list to find all the current powerleague maps. fill the modes table with just the mode names.
@@ -104,9 +103,16 @@ class ManageDB:
         return HttpResponse(contents, content_type='image/png')
 
     def get_player_tags(self):
-
-        country_codes = ['PL', 'US', 'AU', 'BR', 'CN', 'global', 'GR', 'IN', 'ID', 'IT', 'FN', 'NZ', 'SE', 'CN', 'GB', 'MX']
-        for country in country_codes:
+        x = static('country_codes')
+        with open(f'.{x}', 'r+') as f:
+            country_codes = f.readlines()
+            country_codes_list=[]
+            for country_code in country_codes[1:]:
+                country_code = country_code.replace('\n', '')
+                country_codes_list.append(country_code)
+            f.close()
+            
+        for country in country_codes_list:
             top_players = requests.get(f'https://api.brawlstars.com/v1/rankings/{country}/players', self.headers)
             top_players = top_players.json()
             top_players_tags = []
@@ -121,7 +127,6 @@ class ManageDB:
     def update_win_rate(player_tag, result, teams, map):
         player_team = 1
         team_0_brawlers = []
-        team_1_brawlers = []
 
         #find which team our player was a part of 
         for player in teams[0]:
@@ -136,10 +141,10 @@ class ManageDB:
         
         for player in teams[winning_team]:
             brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get(brawler_name = brawler_name)
+            brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
             
             try:
-                wr_obj = WinRate(brawler_name = brawler, map_name = map.map_name)
+                wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
                 wr_obj.games_played += 1
                 wr_obj.games_won += 1
                 wr_obj.save()
@@ -148,10 +153,10 @@ class ManageDB:
         
         for player in teams[1-winning_team]:
             brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get(brawler_name = brawler_name)
+            brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
 
             try:
-                wr_obj = WinRate(brawler_name = brawler, map_name = map.map_name)
+                wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
                 wr_obj.games_played += 1
                 wr_obj.save()
             except WinRate.DoesNotExist:
@@ -167,7 +172,10 @@ class ManageDB:
                 return 
             for battles in game_data['items']:         
                 if battles['battle']:
-                    battle_type = battles['battle']['type']  
+                    try:
+                        battle_type = battles['battle']['type']  
+                    except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in pl anyways lol.
+                        continue
                     if battle_type == 'soloRanked' or battle_type == 'teamRanked':
                         
                         ranked_game_map = str(battles['event']['map'])
@@ -186,18 +194,19 @@ class ManageDB:
                             db_map.games_played += 1
                             db_map.save()
                         #if map doesnt exist create it, if it does add a game played to the map
-                        except:
+                        except Map.DoesNotExist:
                             db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
                             db_map.save()
                         
-                        #this part is for wr calcualting
+                        #this part is for wr calcualting, wasnt planning on it being here but here we are
                         result = battles['battle']['result']
                         teams = battles['battle']['teams']
-                        #ManageDB.update_win_rate(player_tag, result, teams, db_map)    
+                        ManageDB.update_win_rate(player_tag, result, teams, db_map)    
                             
                         return
             
-        def camel_case_to_normal(s):
+        def camel_case_to_normal(s):  ##TODO update maps function already takes too much time, save the modes without changing them. then use iexact/icontains whatever to find them and update them while doing the update modes func.
+            #gotta move as much work as possible away from here
             words = []
             start = 0
             for i, c in enumerate(s[1:], start = 1):
@@ -216,12 +225,12 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 5  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!!
+        ammount_of_battlelogs = 5  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
         if player_num > player_ammount - ammount_of_battlelogs:
-            player_num = player_num - player_ammount            
+            player_num = 0       
         
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
         player_num_object.delete()
@@ -242,6 +251,6 @@ m = ManageDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-m.update_map_list()
-m.update_modes()
+#m.update_map_list()
+#m.update_modes()
 
