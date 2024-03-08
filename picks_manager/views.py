@@ -251,6 +251,6 @@ m = ManageDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_map_list()
 #m.update_modes()
+#m.update_map_list()
 

@@ -11,8 +11,14 @@ body {
 }
 
 
-h5 {
+h1 {
     font-family: 'Poppins';font-size: 3vw;
+}
+h4 {
+    font-family: 'Poppins';font-size: 1.3vw;
+}
+h5 {
+    font-family: 'Poppins';font-size: 0.65vw;
 }
 .pl-logo{
     max-width: 16vw;
