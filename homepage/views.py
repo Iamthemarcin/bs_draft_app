@@ -1,6 +1,7 @@
 from django.shortcuts import render
 import os
 import random
+from decimal import Decimal
 from django.conf import settings
 from picks_manager.models import Map, WinRate
 from django.db.models import F
@@ -19,9 +20,15 @@ def index(request):
     chosen_mode = chosen_map_obj.mode_name
     chosen_map = chosen_map_obj.map_name
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
-    top_brawlers = WinRate.objects.filter(map_name__map_name = chosen_map).calc_viability().order_by('viability')[:12] ### TODO whenever i made the map_name field i was stupid and its confusing change it to map since its foreign key jeez
-    top_brawler = top_brawlers[0]
-    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map }
+    #choose the 12 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
+    top_brawlers = WinRate.objects.filter(map_name__map_name = chosen_map).calc_viability().order_by('-viability')[:16] ### TODO whenever i made the map_name field i was stupid and its confusing change it to map since its foreign key jeez
+    f = {}
+    for top_brawler in top_brawlers:
+        top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
+        top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
+        top_brawler.viability = round(top_brawler.viability * 100,2)
+
+    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
     return render(request, "homepage.html", context)
 
 

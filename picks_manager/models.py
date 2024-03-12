@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import F, FloatField
+from django.db.models import F
+from decimal import Decimal
+
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 
@@ -44,11 +46,10 @@ class Brawler(models.Model):
 
 class WinRateQuerySet(models.QuerySet):
     def calc_win_rate(self):
-        return self.annotate(actual_win_rate=F('games_won')/F('games_played'))
+        return self.annotate(win_rate=F('games_won')/F('games_played'))
     def calc_viability(self):
-        ayaya = self.annotate(viability = (F('games_won')/F('games_played')) * F('use_rate'))
+        ayaya = self.annotate(viability = F('games_won')*Decimal('1.0')/F('games_played')).filter(games_won__gt = 4) ##if less than 4 games i dont care bout u sorry mr object.
         return ayaya
-
 class WinRate(models.Model):
     class Meta:
         unique_together = (('brawler_name', 'map_name'),)

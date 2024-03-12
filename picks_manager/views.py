@@ -9,10 +9,6 @@ from django.templatetags.static import static
 from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate
 # Create your views here.
 
-### TODO increment the player search stuff
-
-
-
 def brawler_picks(request, brawler):
     print(brawler)
     return JsonResponse({'context': brawler})
@@ -28,7 +24,7 @@ def brawler_picks(request, brawler):
 0. update_brawler_pics
 0. update map list
 
-1. update modes
+1. update modes <- do this when icon missing
 """
 
 
@@ -225,7 +221,7 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 5  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
+        ammount_of_battlelogs = 1000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
