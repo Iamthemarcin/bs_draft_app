@@ -1,6 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
-from django.db.models import F
+from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
 
 
@@ -48,7 +48,7 @@ class WinRateQuerySet(models.QuerySet):
     def calc_win_rate(self):
         return self.annotate(win_rate=F('games_won')/F('games_played'))
     def calc_viability(self):
-        ayaya = self.annotate(viability = F('games_won')*Decimal('1.0')/F('games_played')).filter(games_won__gt = 4) ##if less than 4 games i dont care bout u sorry mr object.
+        ayaya = self.annotate(viability = ExpressionWrapper((F('games_won')*Decimal('1.0')/F('games_played'))*F('use_rate'),output_field = FloatField())).filter(games_won__gt = 4) ##if less than 4 games i dont care bout u sorry mr object.
         return ayaya
 class WinRate(models.Model):
     class Meta:
