@@ -15,7 +15,7 @@ h1 {
     font-family: 'Poppins';font-size: 3vw;
 }
 h4 {
-    font-family: 'Poppins';font-size: 1.3vw;
+    font-family: 'Poppins';font-size: 1.1vw;
 }
 h5 {
     font-family: 'Poppins';font-size: 0.65vw;
@@ -107,6 +107,7 @@ h5 {
 .brawlers-box::-webkit-scrollbar {
     display: none;
   }
+
 .brawlers-box{
     position:relative;
     background-color: black;

@@ -1,0 +1,51 @@
+.dropdown {
+    position: absolute;
+    display: block;
+    height: 10%;
+    width: 25%;
+    z-index: 10;
+  }
+.dropdown:hover {
+    cursor: pointer;
+}
+.dropdown-invis-btn{
+  position: relative;
+  height: 100%;
+  width: 100%;
+  color: transparent;
+}
+
+.dropdown-content-container {
+  position: relative;
+  height: 100%;
+  padding: 5%;
+  display: none;
+}
+
+/* before block is created to make an illusion of a shadow  */
+.dropdown-content-bg {
+  position:absolute;
+  right:0;
+  z-index: 15;
+  width:87%;
+  height:inherit;
+  background-color: black;
+  clip-path: polygon(3% 1%, 99% 1%, 97% 99%, 1% 99%);
+}
+.dropdown-content {
+  display:block;
+  position: absolute;
+  
+  right:0;
+  background-color: #f9f9f9;
+  padding: 12px 16px;
+  z-index: 120;
+  width:86%;
+  height:inherit;
+  background-image: linear-gradient(95deg, rgba(139,160,223,255) 15.5%, rgba(139,160,223,255) 97.5%, black 98%);
+  clip-path: polygon(2% 0, 100% 0%, 98% 100%, 0% 100%);
+}
+  
+.dropdown-content-display {
+    display: block;
+}
