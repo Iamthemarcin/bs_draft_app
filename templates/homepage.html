@@ -25,9 +25,73 @@
                         on so i cant put my display list inside of the map container  -->
                     <div class="dropdown">
                         <div class = "dropdown-invis-btn"></div>
-                        <div class = "dropdown-content-container">
-                            <div class="dropdown-content-bg"></div>
-                            <div class="dropdown-content"> 
+                            <div class = "row dropdown-row">
+                                <div class = "column-3">
+                                    <div class = "dropdown-content-container">
+                                        <div class="dropdown-content-bg"></div>
+                                        <div class="dropdown-content"> 
+                                            <div class = map-icon>
+                                                <img class = "gamemode-icon" src = "{{mode_icon_link}}">
+                                            </div>
+                                            <div class = "mode-name">
+                                                {{chosen_mode}}
+                                            </div>
+                                            <div class = "map-name">
+                                                {{chosen_map}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class = "dropdown-content-container">
+                                        <div class="dropdown-content-bg"></div>
+                                        <div class="dropdown-content">
+                                            <div class = map-icon>
+                                                <img class = "gamemode-icon" src = "{{mode_icon_link}}">
+                                            </div>
+                                            <div class = "mode-name">
+                                                {{chosen_mode}}
+                                            </div>
+                                            <div class = "map-name">
+                                                {{chosen_map}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class = "dropdown-content-container">
+                                        <div class="dropdown-content-bg"></div>
+                                        <div class="dropdown-content">
+                                            <div class = map-icon>
+                                                <img class = "gamemode-icon" src = "{{mode_icon_link}}">
+                                            </div>
+                                            <div class = "mode-name">
+                                                {{chosen_mode}}
+                                            </div>
+                                            <div class = "map-name">
+                                                {{chosen_map}}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <div class = "column-3">
+                                <div class = "dropdown-content-container">
+                                    <div class="dropdown-content-bg"></div>
+                                    <div class="dropdown-content">
+                                        <div class = map-icon>
+                                            <img class = "gamemode-icon" src = "{{mode_icon_link}}">
+                                        </div>
+                                        <div class = "mode-name">
+                                            {{chosen_mode}}
+                                        </div>
+                                        <div class = "map-name">
+                                            {{chosen_map}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="background-blue" >
+                        <div class = "black-rectangle">
+                            <div class = "selected-map">
+                                <!-- displays random map at first -->
                                 <div class = map-icon>
                                     <img class = "gamemode-icon" src = "{{mode_icon_link}}">
                                 </div>
@@ -37,33 +101,9 @@
                                 <div class = "map-name">
                                     {{chosen_map}}
                                 </div>
+                                <!-- onclick you can choose which map you want via the dropdown div -->
                             </div>
-
                         </div>
-                        
-                        <div class = "dropdown-content-container">
-                            <div class="dropdown-content-bg"></div>
-                            <div class="dropdown-content">
-                            </div>
-
-                        </div>
-                    </div>
-                
-                    <div class="background-blue" >
-                        <div class = "selected-map">
-                            <!-- displays random map at first -->
-                            <div class = map-icon>
-                                <img class = "gamemode-icon" src = "{{mode_icon_link}}">
-                            </div>
-                            <div class = "mode-name">
-                                {{chosen_mode}}
-                            </div>
-                            <div class = "map-name">
-                                {{chosen_map}}
-                            </div>
-                            <!-- onclick you can choose which map you want -->
-                        </div>
-
                         <div class="wrapper-to-make-overflow-y-visible-because-apparently-you-cant-have-overflow-x-scroll-and-y-visible-which-makes-sense">
                             
                             <div class = "brawler-searchbox">

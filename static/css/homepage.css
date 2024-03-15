@@ -45,29 +45,39 @@ h5 {
     background-color: black;
     padding-top:6%;
 }
-
-.selected-map{
-    background-image: linear-gradient(95deg, black 15%, rgba(139,160,223,255) 15.5%, rgba(139,160,223,255) 97.5%, black 98%);
+.black-rectangle{
+    background-color: black;
     height:18%;
     width:25%;
     position:absolute;
     top:-1%;
-    border-bottom: 0.5vh black solid;
     clip-path: polygon(0 0, 100% 0%, 98% 100%, 0% 100%);
+
+}
+.selected-map{
+    background-image: linear-gradient(95deg, rgba(139,160,223,255) 15.5%, rgba(139,160,223,255) 97.5%, black 98%);
+    right:0.25vh;
+    height: 100%;
+    width:85%;
+    position:absolute;
+    border-bottom: 0.25vh black solid;
+    border-top: 0.25vh black solid;
+    clip-path: polygon(2% 0, 100% 0%, 98% 100%, 0% 100%);
 }
 
 .gamemode-icon{
     width:25%;
     height:95%;
     position:absolute;
-    left:15%;
-    top:5%;
+    left:5%;
+    top:2.5%;
 }
 .mode-name{
     position:absolute;
     color: white;
     font-size: 2.5vh;
     right:20%;
+    top:0%;
     transform: translate(15%);
     white-space:nowrap;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 0.3vh 0 #000;

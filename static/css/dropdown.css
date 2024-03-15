@@ -13,32 +13,41 @@
   height: 100%;
   width: 100%;
   color: transparent;
+  margin-bottom: 5%;
+}
+.dropdown>.row{
+  height: 35vh;
+  width: 100vw;
+  position: absolute;
 }
 
+.dropdown>.col{
+  height: 100%;
+  position: absolute;
+}
 .dropdown-content-container {
   position: relative;
   height: 100%;
-  padding: 5%;
   display: none;
+  margin-bottom: 2%;
 }
 
 /* before block is created to make an illusion of a shadow  */
 .dropdown-content-bg {
   position:absolute;
-  right:0;
+  top:-3%;
+  right:-1%;
   z-index: 15;
-  width:87%;
-  height:inherit;
+  width:88%;
+  height:106%;
   background-color: black;
-  clip-path: polygon(3% 1%, 99% 1%, 97% 99%, 1% 99%);
+  clip-path: polygon(2% 0%, 100% 0%, 98% 100%, 0% 100%);
 }
 .dropdown-content {
-  display:block;
+  top:0;
   position: absolute;
-  
   right:0;
   background-color: #f9f9f9;
-  padding: 12px 16px;
   z-index: 120;
   width:86%;
   height:inherit;
