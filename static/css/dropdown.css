@@ -1,4 +1,5 @@
 .dropdown {
+  --main-width: 75vw; /* saves the width of the whole container to be used in the dropdown */
     position: absolute;
     display: block;
     height: 10%;
@@ -16,19 +17,15 @@
   margin-bottom: 5%;
 }
 .dropdown>.row{
-  height: 35vh;
-  width: 100vw;
-  position: absolute;
+  height: 18vh;   /* 3*10% of draft-container vh */
+  width: var(--main-width);
+  position: relative;
+  display:none;
 }
 
-.dropdown>.col{
-  height: 100%;
-  position: absolute;
-}
 .dropdown-content-container {
   position: relative;
-  height: 100%;
-  display: none;
+  height: 21%;
   margin-bottom: 2%;
 }
 
@@ -36,9 +33,9 @@
 .dropdown-content-bg {
   position:absolute;
   top:-3%;
-  right:-1%;
+  right:-0.5%;
   z-index: 15;
-  width:88%;
+  width:87%;
   height:106%;
   background-color: black;
   clip-path: polygon(2% 0%, 100% 0%, 98% 100%, 0% 100%);
@@ -47,14 +44,25 @@
   top:0;
   position: absolute;
   right:0;
-  background-color: #f9f9f9;
+  background-color: rgba(139,160,223,255);
   z-index: 120;
   width:86%;
-  height:inherit;
-  background-image: linear-gradient(95deg, rgba(139,160,223,255) 15.5%, rgba(139,160,223,255) 97.5%, black 98%);
+  height:100%;
   clip-path: polygon(2% 0, 100% 0%, 98% 100%, 0% 100%);
 }
-  
+
 .dropdown-content-display {
-    display: block;
+    display: flex !important;
+}
+
+#map-search{
+  position:absolute;
+  right:0;
+  background-color: black;
+  width: 25%;
+  height:15%;
+  top:-15%;
+  clip-path: polygon(1% 0, 100% 0%, 100% 100%, 0% 100%);
+  color: white;
+  font-family: 'LilitaOne';
 }

@@ -15,7 +15,8 @@ def index(request):
     top_row = img_list[:half]
     bottom_row = img_list[half:]
     #choose a random map and mode
-    maps = list(Map.objects.all())
+    all_maps = Map.objects.all().order_by('mode_name')
+    maps = list(all_maps)
     chosen_map_obj = random.choice(maps)
     chosen_mode = chosen_map_obj.mode_name
     chosen_map = chosen_map_obj.map_name
@@ -28,7 +29,7 @@ def index(request):
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
         top_brawler.viability = round(top_brawler.viability * 100,2)
 
-    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
+    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
     return render(request, "homepage.html", context)
 
 
