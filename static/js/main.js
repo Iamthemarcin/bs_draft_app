@@ -20,7 +20,6 @@ function change_font_size(){
     font_size = 1.75 - (9/len)/5
     console.log(font_size)
     map_name.css( "font-size", `${font_size}vh` )
-    console.log('hello')
   }
 }
 change_font_size()
@@ -40,6 +39,7 @@ function brawler_search(){
   })
 }
 brawler_search()
+
 
 pick_number = 1
 function choose_brawler(brawler){

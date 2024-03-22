@@ -26,13 +26,13 @@
                     
                     <!-- from what i understand in order to display over other elements the parent needs to be at least a sibling of the element displayed 
                         on so i cant put my display list inside of the map container  -->
+                    <input type = "search-text " id = "dropdown-search" onkeyup="map_search()" placeholder="Search for map"></h3>
                     <div class="dropdown">
                         <div class = "dropdown-invis-btn"></div>
-                        <input type = "search-text no-padding" id = "dropdown-search" brawler-search placeholder="Search for map"></h3>
                             <div class = "row">
                                 <!-- loop over 0,1,2 -> 3 elements in total -->
                                 {% for i in '012'|make_list %} 
-                                <div class = "col-3">
+                                <div class = "col-3 dropdown-col">
                                     {% for j in '012345'|make_list %}
 
                                     {% current_map maps i j as map %}

@@ -3,7 +3,7 @@
     position: absolute;
     display: block;
     height: 10%;
-    width: 25%;
+    width: 28%;
     z-index: 10;
   }
 .dropdown:hover {
@@ -55,14 +55,18 @@
     display: flex !important;
 }
 
-#map-search{
-  position:absolute;
-  right:0;
+#dropdown-search{
+  display: none;
+  outline: 0;
+  border-width: 2%;
+  border-color: black;
+  position: absolute;
+  height: 8%;
+  left:27.5%;
+  width:20%;
+  z-index: 10;
   background-color: black;
-  width: 25%;
-  height:15%;
-  top:-15%;
-  clip-path: polygon(1% 0, 100% 0%, 100% 100%, 0% 100%);
+  clip-path: polygon(2% 0, 100% 0%, 98% 100%, 0% 100%);
   color: white;
   font-family: 'LilitaOne';
 }
