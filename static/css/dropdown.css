@@ -17,15 +17,19 @@
   margin-bottom: 5%;
 }
 .dropdown>.row{
-  height: 18vh;   /* 3*10% of draft-container vh */
+  height: 47vh;   /* 3*10% of draft-container vh */
   width: var(--main-width);
   position: relative;
   display:none;
 }
 
+.dropdown-col{
+  overflow: auto;
+}
+
 .dropdown-content-container {
   position: relative;
-  height: 21%;
+  height: 13.5%;
   margin-bottom: 2%;
 }
 

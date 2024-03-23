@@ -178,6 +178,7 @@ h5 {
     display: none !important;
     overflow: hidden;
     height: 0 !important;
+    margin: 0;
 }
 
 .my-row>img{

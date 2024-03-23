@@ -8,25 +8,27 @@ function disp_dropdown(){
 }
 $('.dropdown-invis-btn').click(disp_dropdown)
 
-// usin js instead of jquery for no real reason aside from it feels cooler 😎
+// dont mind this abomination of jquery combined with js :) 
 function map_search(){
     maps = $('.dropdown-content-container')
     searchInput = $('#dropdown-search')
     filter = searchInput[0].value.toLowerCase()
+    cols_to_not_hide = []
     maps.each(function (i, map) {
         map.classList.add("hide")
         col = $(this).parent(".dropdown-col")
-        if (!(typeof(col) === "undefined")){
-            col.addClass("hide")
-            var last_defined_col = col //spaghetti, but first map of every col should set the col to last_defined_col everytime RIGHT no bugs possible RIGHT
-        }
         map_name = $(this).children(".dropdown-content").children(".map-name").text().toLowerCase()
-        
+        col.addClass('hide')
 
         if (map_name.includes(filter)){
-            console.log(map_name, " ", filter)
             map.classList.remove("hide")
-            last_defined_col.removeClass("hide")
+            cols_to_not_hide.push(col) //its not unique but w/e 
+            $(this).siblings('.full-disp-break').addClass('hide')  //the break separates em modes nicely unless stuff gets hidden then its just weird go away baka
           }
     })
+    cols_to_not_hide.forEach(col => {
+        col.removeClass('hide')
+    })
+
+
 }

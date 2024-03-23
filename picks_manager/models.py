@@ -10,7 +10,7 @@ PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
 class Mode(models.Model):
     mode_name = models.CharField(max_length = 15, primary_key = True)
     mode_icon = models.CharField(max_length = 200)
-
+    mode_color = models.CharField(max_length = 30)
     def __str__(self):
         return self.mode_name
 
@@ -63,10 +63,6 @@ class WinRate(models.Model):
     def __str__(self):
         return self.map_name.map_name + ' ' + self.brawler_name.brawler_name
 
-
-    
-
-    
 class Player(models.Model):
     player_tag = models.CharField(max_length = 20, primary_key = True)
 

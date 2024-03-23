@@ -72,6 +72,15 @@ class ManageDB:
 
     @staticmethod
     def update_modes():
+        bg_colors = {
+            'Gem Grab':'rgba(154,61,243,255)',
+            'Heist':'rgba(214,92,211,255)',
+            'Bounty':'rgba(0,207,255,255)',
+            'Brawl Ball':'rgba(140,160,224,255)',
+            'Hot Zone':'rgba(227,59,80,255)',
+            'Knockout':'rgba(247,131,28,255)',
+        }
+        
         all_my_modes = Mode.objects.all()
         all_modes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
         all_modes = all_modes_request.json()
@@ -79,6 +88,7 @@ class ManageDB:
             result = []
             ManageDB.search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
             mode.mode_icon = result[0]
+            mode.mode_color = bg_colors[mode.mode_name]
             mode.save()
 
     @staticmethod
