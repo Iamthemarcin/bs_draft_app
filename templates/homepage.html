@@ -38,7 +38,7 @@
                                     {% current_map maps i j as map %}
 
                                     {% if forloop.counter0 == 3 %}
-                                        <br class="full-disp-break">
+                                        <br>
                                     {% endif %}
                                     <div class = "dropdown-content-container">
                                         <div class="dropdown-content-bg"></div>
@@ -49,7 +49,6 @@
                                             
                                             <div class = "mode-name">
                                                 {{map.mode_name}}
-
                                             </div>
                                             <div class = "map-name">
                                                 {{map.map_name}}
@@ -63,15 +62,15 @@
                     </div>
                     <div class="background-blue" >
                         <div class = "black-rectangle">
-                            <div class = "selected-map"  style="background-color: {{ chosen_mode.mode_color }}">
+                            <div class = "selected-map" id = "current-selected-map" style="background-color: {{ chosen_mode.mode_color }}">
                                 <!-- displays random map at first -->
                                 <div class = map-icon>
-                                    <img class = "gamemode-icon" src = "{{mode_icon_link}}">
+                                    <img class = "gamemode-icon" id = "current-map-icon" src = "{{mode_icon_link}}">
                                 </div>
-                                <div class = "mode-name">
+                                <div class = "mode-name" id = "current-mode-name">
                                     {{chosen_mode}}
                                 </div>
-                                <div class = "map-name">
+                                <div class = "map-name" id = "current-map-name">
                                     {{chosen_map}}
                                 </div>
                                 <!-- onclick you can choose which map you want via the dropdown div -->
@@ -146,6 +145,8 @@
                 <div><h4>Top picks:</h4></div>
             </div>
             <!-- what happens on every loop moment is in my_loop.html file in case sth breaks up in future -->
+            <!-- i could make a template and put it in here to not repeat the code 3 times but idk if its worth its 
+            still divine intellect as terry davis would say (hopefully)-->
             {% for top_brawler in top_brawlers %}
 
                 {% if forloop.counter0|divisibleby:8 %}

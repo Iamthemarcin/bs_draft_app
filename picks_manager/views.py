@@ -187,8 +187,9 @@ class ManageDB:
                         ranked_game_map = str(battles['event']['map'])
                         ranked_game_mode = str(battles['battle']['mode'])
 
-                        #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho so gotta make another call.
-                        #wont make the call in this funciton tho, too much stuff going on already 
+                        #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api) 
+                        # so gotta make another call (the update_modes function).
+                        #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times.
 
                         mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
                         mode = camel_case_to_normal(mode)

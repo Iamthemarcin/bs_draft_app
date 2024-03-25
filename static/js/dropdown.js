@@ -8,7 +8,11 @@ function disp_dropdown(){
 }
 $('.dropdown-invis-btn').click(disp_dropdown)
 
-// dont mind this abomination of jquery combined with js :) 
+// You input some string in mapsearch box, this string gets compared to all the maps.
+// first  you hide every map card and column. Then, if the string is in the map name, you un-hide it. You also mark in which
+// column (theres 3) the string has been found. This column gets saved in cols_to_not_hide. After everything ends you
+// remove the hide class from the columns found in it. Documenting this just in case something is fucked and i miss the most obvious
+// fix in the world for two hours... again...
 function map_search(){
     maps = $('.dropdown-content-container')
     searchInput = $('#dropdown-search')
@@ -22,13 +26,25 @@ function map_search(){
 
         if (map_name.includes(filter)){
             map.classList.remove("hide")
-            cols_to_not_hide.push(col) //its not unique but w/e 
-            $(this).siblings('.full-disp-break').addClass('hide')  //the break separates em modes nicely unless stuff gets hidden then its just weird go away baka
+            cols_to_not_hide.push(col) //its not unique but w/e
+            $(this).siblings('br').addClass('hide')  //the break separates em modes nicely unless stuff gets hidden then its just weird go away baka
           }
     })
     cols_to_not_hide.forEach(col => {
         col.removeClass('hide')
     })
-
-
 }
+
+function change_map(){
+    map_icon_src = $(this).children('.map-icon').children().attr("src")
+    mode_name = $(this).children('.mode-name').text()
+    map_name = $(this).children('.map-name').text()
+    background_color = $(this).css("background-color");
+
+    $('#current-map-icon').attr("src", map_icon_src)
+    $('#current-mode-name').text(mode_name)
+    $('#current-map-name').text(map_name)
+    $('#current-selected-map').css("background-color", background_color)
+    disp_dropdown()
+}
+$('.dropdown-content').click(change_map)
