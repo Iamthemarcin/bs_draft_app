@@ -22,7 +22,7 @@ def brawler_picks(request, brawler):
 0. get_player_tags
 0. update_brawler_list
 0. update_brawler_pics
-0. update map list
+0. update map list <-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
 
 1. update modes <- do this when icon missing
 """
