@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
+from rest_framework import serializers
 
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
@@ -62,6 +63,14 @@ class WinRate(models.Model):
     objects = WinRateQuerySet.as_manager()
     def __str__(self):
         return self.map_name.map_name + ' ' + self.brawler_name.brawler_name
+
+class WinRateSerializer(serializers.Serializer):
+    brawler_name = serializers.CharField(max_length = 30)
+    use_rate = serializers.FloatField()
+    win_rate = serializers.FloatField()
+    viability = serializers.FloatField()
+    image_url = serializers.CharField(max_length = 100)
+
 
 class Player(models.Model):
     player_tag = models.CharField(max_length = 20, primary_key = True)

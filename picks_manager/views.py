@@ -38,7 +38,7 @@ class ManageDB:
     headers = {
         'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
-    
+    i = 0
     #function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
     def search_response(data, search_word, chosen_mode, results_list):
         if isinstance(data,dict):
@@ -169,14 +169,22 @@ class ManageDB:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
 
-    def update_map_list(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
+    def update_map_list_and_winrate(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
         def look_for_ranked_games(game_data, player_tag):
+
             if not 'items' in game_data:
                 print("No games retrieved")
                 return 
+                    
             for battles in game_data['items']:         
+
+                
+                self.i += 1
+                if self.i % 250 == 0:
+                    print(str(self.i) + " battles have been checked")
+                
                 if battles['battle']:
                     try:
                         battle_type = battles['battle']['type']  
@@ -209,7 +217,7 @@ class ManageDB:
                         result = battles['battle']['result']
                         teams = battles['battle']['teams']
                         ManageDB.update_win_rate(player_tag, result, teams, db_map)    
-                            
+                    
                         return
             
         def camel_case_to_normal(s):  ##TODO update maps function already takes too much time, save the modes without changing them. then use iexact/icontains whatever to find them and update them while doing the update modes func.
@@ -259,5 +267,5 @@ m = ManageDB()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_modes()
-#m.update_map_list()
+#m.update_map_list_and_winrate()
 

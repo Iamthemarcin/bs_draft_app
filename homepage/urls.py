@@ -3,5 +3,5 @@ from . import views
 
 urlpatterns = [
     path("", views.index, name="index"),
-    path("map_change", views.map_change),
+    path("map_change", views.map_change, name = "map_change"),
 ]

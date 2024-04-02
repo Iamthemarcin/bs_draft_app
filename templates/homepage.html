@@ -160,8 +160,8 @@
                     <div class = "col-lg-6">
                         <div class = "row">
                             <div class = "col-lg-3">
-                                <img class = "mb-2 img-responsive img-fluid" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                                <h4 id = "brawler_name_{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
+                                <img class = "mb-2 img-responsive img-fluid" id = "brawler_img{{forloop.counter0}}" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                                <h4 id = "brawler_name{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
                                 <h5 id ="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
                                 <h5 id = "use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
                                 <h5 id = "viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
@@ -173,8 +173,8 @@
                 <div class = "col-lg-6">
                     <div class = "row">
                         <div class = "col-lg-3">
-                            <img class = "mb-2 img-responsive img-fluid" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                            <h4 id = "brawler_name_{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
+                            <img class = "mb-2 img-responsive img-fluid" id = "brawler_img{{forloop.counter0}}" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                            <h4 id = "brawler_name{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
                             <h5 id ="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
                             <h5 id = "use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
                             <h5 id = "viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
@@ -183,8 +183,8 @@
                 {% else %}
 
                 <div class = "col-lg-3">
-                    <img class = "mb-2 img-responsive img-fluid" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                    <h4 id = "brawler_name_{{forloop.counter0}}">{{forloop.counter}} {{top_brawler.brawler_name}} </h4>
+                    <img class = "mb-2 img-responsive img-fluid" id = "brawler_img{{forloop.counter0}}" src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                    <h4 id = "brawler_name{{forloop.counter0}}">{{forloop.counter}} {{top_brawler.brawler_name}} </h4>
                     <h5 id ="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
                     <h5 id = "use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
                     <h5 id = "viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
