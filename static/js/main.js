@@ -43,18 +43,24 @@ brawler_search()
 
 pick_number = 1
 function choose_brawler(brawler){
-  
+  brawler_name = brawler.id.toString().slice(0,-4)
+  map_name = $('#current-map-name').text().replace(/\/\n/g, '').trim()
+  console.log(map_name)
   //send the picked brawler info to the server, n wait for response
-  fetch(`info/${brawler.id.split(".")[0]}`, {
-    method: "GET",
+  fetch("brawler_pick", {
+    method: "POST",
     headers: {
-      "X-Requested-With": "XMLHttpRequest",
-    }
-  })
-  .then(response => response.json())
-  .then(data => {
-    console.log(data['context']);
-  });
+        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+    },
+    body: JSON.stringify({
+        'brawler_name': brawler_name,
+        'map_name': map_name
+    }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log(data)
+    });
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
   //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it

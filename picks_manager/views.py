@@ -9,14 +9,7 @@ from django.templatetags.static import static
 from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate
 # Create your views here.
 
-def brawler_picks(request, brawler):
-    print(brawler)
-    return JsonResponse({'context': brawler})
-
-
-#Functions below are used to populate the database from Brawlify and official Brawlstars APIs.
-
-
+#Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
 
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
 0. get_player_tags
@@ -258,8 +251,20 @@ class ManageDB:
             request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag_link)
             all_games = requests.get(request_link, self.headers)
             all_games = all_games.json()
-            look_for_ranked_games(all_games, player_tag)
+            look_for_ranked_games(all_games, player_tag)        
         return 
+    
+    #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
+    #and i dont want to. 
+    @staticmethod
+    def clean_up_the_maps():
+        max_amm_of_maps = 18
+        map_list = Map.objects.all().order_by('games_played')
+        while len(map_list) > max_amm_of_maps:
+            print("Map removed: ", map_list[0].map_name)
+            Map.objects.get(map_name = map_list[0].map_name).delete()
+            map_list.pop(0)
+        return
 
 
 m = ManageDB()
@@ -268,4 +273,4 @@ m = ManageDB()
 #m.get_player_tags()
 #m.update_modes()
 #m.update_map_list_and_winrate()
-
+m.clean_up_the_maps()
