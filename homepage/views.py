@@ -11,13 +11,18 @@ from django.http import JsonResponse
 from rest_framework.renderers import JSONRenderer
 
 
-def get_top_brawlers(map, ammount):
-    top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount] ### TODO whenever i made the map_name field i was stupid and its confusing change it to map since its foreign key jeez
+def get_top_brawlers(map, ammount, excluded_brawlers = None):
+    if excluded_brawlers:
+        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=excluded_brawlers)[:ammount] ### map_name is foreign key GET PRANKED
+    else:
+        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
+    
+    
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
         top_brawler.viability = round(top_brawler.viability * 100,2)
-        top_brawler.image_url = Brawler.objects.get(brawler_name = top_brawler.brawler_name).image_url
+
     return top_brawlers
 
 def index(request):
@@ -48,10 +53,11 @@ def map_change(request):
     return JsonResponse(serializer.data, safe=False)
 
 def brawler_pick(request):
-    print(request.body)
-    brawler_name = json.loads(request.body)['brawler_name']
+    brawler_data = json.loads(request.body)['brawler_data']
     map_name = json.loads(request.body)['map_name']
-    top_brawlers = get_top_brawlers(map_name, 16)
+    excluded_brawlers = list(brawler_data.values())
+    top_brawlers = get_top_brawlers(map_name, 16, excluded_brawlers=excluded_brawlers)
+    top_brawlers_serializer = WinRateSerializer(top_brawlers, many=True)
 
-    context = {'brawler_name': brawler_name, 'map_name': map_name}
+    context = {'brawler_data': brawler_data, 'map_name': map_name, 'top_brawlers': top_brawlers_serializer.data}
     return  JsonResponse(context, safe=False)

@@ -69,8 +69,6 @@ class WinRateSerializer(serializers.Serializer):
     use_rate = serializers.FloatField()
     win_rate = serializers.FloatField()
     viability = serializers.FloatField()
-    image_url = serializers.CharField(max_length = 100)
-
 
 class Player(models.Model):
     player_tag = models.CharField(max_length = 20, primary_key = True)
