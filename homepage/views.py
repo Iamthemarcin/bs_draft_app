@@ -17,7 +17,6 @@ def get_top_brawlers(map, ammount, excluded_brawlers = None):
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
     
-    
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
@@ -40,10 +39,9 @@ def index(request):
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
     #choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
     top_brawlers = get_top_brawlers(chosen_map,16)
-
+    
     context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
     return render(request, "homepage.html", context)
-
 
 def map_change(request):
     new_map = json.loads(request.body)['map_name']

@@ -6,7 +6,7 @@ import requests
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
-from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate
+from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Brawler_Class
 # Create your views here.
 
 #Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
@@ -51,18 +51,47 @@ class ManageDB:
             for i in data:
                 ManageDB.search_response(i, search_word, chosen_mode, results_list)
 
-    
     @staticmethod
-    def update_brawler_list():
+    def update_brawler_classes():      
+        class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery':'Assasin', 'Controller':'Artillery', 'Marksman':'Assasin', 'Damage Dealer':'Marksman', 'Support':['Tank', 'Assasin'], 'Tank':['Damage Dealer', 'Controller']}
+        
+        for b_class,counters in class_counters.items():
+            if isinstance(counters,list):
+                for counter in counters:
+                    try:
+                        brawler_class = Brawler_Class.objects.filter(class_name = b_class)[0]
+                    except:
+                        brawler_class = Brawler_Class(class_name = b_class)
+
+                    if counter in brawler_class.countered_by:
+                        continue
+                    brawler_class.countered_by += counter + ' '
+                    brawler_class.save()
+            else:
+                    try:
+                        brawler_class = Brawler_Class.objects.filter(class_name = b_class)[0]
+                    except:
+                        brawler_class = Brawler_Class(class_name = b_class)
+                    
+                    if counters not in brawler_class.countered_by:
+                        brawler_class.countered_by += counters                
+                        brawler_class.save()
+        
+
+    @staticmethod
+    def update_brawler_list():        
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
         all_brawlers_json = all_brawlers_request.json()
+        classset = set()
         for brawler in all_brawlers_json['list']:
             brawler_name = brawler['name']
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
-            brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url)
+            brawler_class = brawler['class']['name']
+            classset.add(brawler_class)
+            brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
-
+        print(classset)
     @staticmethod
     def update_modes():
         bg_colors = {
@@ -190,7 +219,7 @@ class ManageDB:
 
                         #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api) 
                         # so gotta make another call (the update_modes function).
-                        #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times.
+                        #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times to update winrate.
 
                         mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
                         mode = camel_case_to_normal(mode)
@@ -268,9 +297,10 @@ class ManageDB:
 
 
 m = ManageDB()
+m.update_brawler_classes()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_modes()
 #m.update_map_list_and_winrate()
-m.clean_up_the_maps()
+#m.clean_up_the_maps()

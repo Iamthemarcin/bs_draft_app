@@ -40,6 +40,7 @@ class Brawler(models.Model):
     brawler_name = models.CharField(primary_key=True, max_length = 20)
     rarity = models.CharField(max_length = 11, choices = BRAWLER_RARITIES, default = RARE)
     image_url = models.CharField(max_length = 200)
+    brawler_class = models.CharField(max_length = 25)
 
     def __str__(self):
         return self.brawler_name
@@ -62,7 +63,7 @@ class WinRate(models.Model):
     games_won = models.IntegerField()
     objects = WinRateQuerySet.as_manager()
     def __str__(self):
-        return self.map_name.map_name + ' ' + self.brawler_name.brawler_name
+        return self.map_name.map_name + ', ' + self.brawler_name.brawler_name
 
 class WinRateSerializer(serializers.Serializer):
     brawler_name = serializers.CharField(max_length = 30)
@@ -78,4 +79,12 @@ class LastPlayerChecked(models.Model):
     class Meta:
         verbose_name_plural = "LastPlayerChecked"
 
-# Create your models here.
+class Brawler_Class(models.Model):
+
+    class_name = models.CharField(max_length = 25)
+    countered_by = models.CharField(max_length = 100)
+
+    def __str__(self):
+        return self.class_name + ' is countered by ' + self.countered_by
+    class Meta:
+        verbose_name_plural = "Brawler_classes"

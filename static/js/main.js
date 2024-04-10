@@ -1,3 +1,8 @@
+window.onload = (event) => {
+  $('#search').focus()
+};
+
+
 function scroll_me_daddy(){
   var scrollable_container = document.getElementsByClassName('brawlers-box')[0];
   scrollable_container.addEventListener("wheel", function (e) {
@@ -25,7 +30,7 @@ change_font_size()
 
 function brawler_search(){
   const brawlers = document.getElementsByClassName("brawler-img")
-  const searchInput = document.querySelector("[brawler-search]")
+  const searchInput = document.querySelector("#search")
   searchInput.addEventListener("input", (e) => {
     const input_value = e.target.value.toLowerCase()
     Array.from(brawlers).forEach(function (brawler) {
@@ -84,6 +89,16 @@ function choose_brawler(brawler){
     }
   retrieve_top_picks()
   pick_number++
+  searchbox = document.querySelector("#search")
+  searchbox.value = ''
+  searchbox.focus()
+  const all_brawlers = document.getElementsByClassName("brawler-img");
+  console.log(all_brawlers)
+  Array.from(all_brawlers).forEach((brawler)=> {
+
+    brawler.classList.remove('hide')
+    console.log('KURWO GRECKA')
+  })
 
   }
 
