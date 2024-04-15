@@ -11,15 +11,19 @@ from django.http import JsonResponse
 from rest_framework.renderers import JSONRenderer
 
 
-def get_top_brawlers(map, ammount, excluded_brawlers = None):
-    if excluded_brawlers:
-        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=excluded_brawlers)[:ammount] ### map_name is foreign key GET PRANKED
+def get_top_brawlers(map, ammount, picked_brawlers = None):
+    if picked_brawlers:
+        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=picked_brawlers)[:ammount*2] ### map_name is foreign key GET PRANKED
+        for brawler in top_brawlers:
+            #if brawler.brawler_class
+            continue
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
     
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
+
         top_brawler.viability = round(top_brawler.viability * 100,2)
 
     return top_brawlers
@@ -53,8 +57,8 @@ def map_change(request):
 def brawler_pick(request):
     brawler_data = json.loads(request.body)['brawler_data']
     map_name = json.loads(request.body)['map_name']
-    excluded_brawlers = list(brawler_data.values())
-    top_brawlers = get_top_brawlers(map_name, 16, excluded_brawlers=excluded_brawlers)
+    picked_brawlers = list(brawler_data.values())
+    top_brawlers = get_top_brawlers(map_name, 16, picked_brawlers=picked_brawlers)
     top_brawlers_serializer = WinRateSerializer(top_brawlers, many=True)
 
     context = {'brawler_data': brawler_data, 'map_name': map_name, 'top_brawlers': top_brawlers_serializer.data}

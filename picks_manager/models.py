@@ -22,6 +22,17 @@ class Map(models.Model):
     def __str__(self):
         return self.map_name
 
+
+class Brawler_Class(models.Model):
+
+    class_name = models.CharField(max_length = 25, primary_key=True)
+    countered_by = models.CharField(max_length = 100)
+
+    def __str__(self):
+        return self.class_name + ' is countered by ' + self.countered_by
+    class Meta:
+        verbose_name_plural = "Brawler_classes"
+
 class Brawler(models.Model):
 
     LEG = "LEGENDARY"
@@ -40,7 +51,7 @@ class Brawler(models.Model):
     brawler_name = models.CharField(primary_key=True, max_length = 20)
     rarity = models.CharField(max_length = 11, choices = BRAWLER_RARITIES, default = RARE)
     image_url = models.CharField(max_length = 200)
-    brawler_class = models.CharField(max_length = 25)
+    brawler_class = models.ForeignKey(Brawler_Class, max_length = 25, on_delete = models.DO_NOTHING)
 
     def __str__(self):
         return self.brawler_name
@@ -50,7 +61,7 @@ class WinRateQuerySet(models.QuerySet):
     def calc_win_rate(self):
         return self.annotate(win_rate=F('games_won')/F('games_played'))
     def calc_viability(self):
-        ayaya = self.annotate(viability = ExpressionWrapper((F('games_won')*Decimal('1.0')/F('games_played'))*F('use_rate'),output_field = FloatField())).filter(games_won__gt = 4) ##if less than 4 games i dont care bout u sorry mr object.
+        ayaya = self.annotate(viability = ExpressionWrapper((F('games_won')*Decimal('1.0')/F('games_played'))*F('use_rate'),output_field = FloatField())).filter(games_won__gt = 5) ##if less than 4 games i dont care bout u sorry mr object.
         return ayaya
 class WinRate(models.Model):
     class Meta:
@@ -78,13 +89,3 @@ class LastPlayerChecked(models.Model):
     last_player_checked = models.IntegerField(primary_key= True, default = 0)
     class Meta:
         verbose_name_plural = "LastPlayerChecked"
-
-class Brawler_Class(models.Model):
-
-    class_name = models.CharField(max_length = 25)
-    countered_by = models.CharField(max_length = 100)
-
-    def __str__(self):
-        return self.class_name + ' is countered by ' + self.countered_by
-    class Meta:
-        verbose_name_plural = "Brawler_classes"

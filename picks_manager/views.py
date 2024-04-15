@@ -12,12 +12,12 @@ from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Braw
 #Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
 
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
-0. get_player_tags
-0. update_brawler_list
-0. update_brawler_pics
-0. update map list <-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
-
-1. update modes <- do this when icon missing
+0. update_brawler_classes
+1. get_player_tags
+1. update_brawler_list
+1. update_brawler_pics
+1. update map list <-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
+2. update modes <- do this when icon missing
 """
 
 
@@ -82,16 +82,14 @@ class ManageDB:
     def update_brawler_list():        
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
         all_brawlers_json = all_brawlers_request.json()
-        classset = set()
         for brawler in all_brawlers_json['list']:
             brawler_name = brawler['name']
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
             brawler_class = brawler['class']['name']
-            classset.add(brawler_class)
+            brawler_class = Brawler_Class.objects.filter(class_name = brawler_class)[0]
             brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
-        print(classset)
     @staticmethod
     def update_modes():
         bg_colors = {
@@ -262,7 +260,7 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 1000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
+        ammount_of_battlelogs = 45000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
@@ -285,22 +283,37 @@ class ManageDB:
     
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
     #and i dont want to. 
+class CleaningDB:    
     @staticmethod
     def clean_up_the_maps():
         max_amm_of_maps = 18
-        map_list = Map.objects.all().order_by('games_played')
+        map_list = list(Map.objects.all().order_by('games_played'))
         while len(map_list) > max_amm_of_maps:
             print("Map removed: ", map_list[0].map_name)
             Map.objects.get(map_name = map_list[0].map_name).delete()
             map_list.pop(0)
         return
-
+    @staticmethod
+    def fix_use_rate():
+        win_rate_objects = WinRate.objects.all()
+        for win_rate_obj in win_rate_objects:
+            use_rate = win_rate_obj.use_rate
+            db_map = Map.objects.get(map_name = win_rate_obj.map_name)
+            actual_use_rate = win_rate_obj.games_played/db_map.games_played
+            if win_rate_obj.use_rate != actual_use_rate:
+                win_rate_obj.use_rate = actual_use_rate
+                win_rate_obj.save()
+        return
 
 m = ManageDB()
-m.update_brawler_classes()
+c = CleaningDB()
+#m.update_brawler_classes()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_modes()
 #m.update_map_list_and_winrate()
-#m.clean_up_the_maps()
+#m.update_modes()
+
+#c.clean_up_the_maps()
+#c.fix_use_rate()
