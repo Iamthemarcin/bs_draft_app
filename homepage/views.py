@@ -5,28 +5,45 @@ import json
 from decimal import Decimal
 from django.core import serializers
 from django.conf import settings
-from picks_manager.models import Map, WinRate, Brawler, WinRateSerializer
+from picks_manager.models import Map, WinRate, Brawler, WinRateSerializer, BrawlerClass
 from django.db.models import F
 from django.http import JsonResponse
 from rest_framework.renderers import JSONRenderer
 
 
 def get_top_brawlers(map, ammount, picked_brawlers = None):
-    if picked_brawlers:
-        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=picked_brawlers)[:ammount*2] ### map_name is foreign key GET PRANKED
-        for brawler in top_brawlers:
-            #if brawler.brawler_class
-            continue
+    if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
+        top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=picked_brawlers)[:ammount*2] ### map_name is foreign key to map object which has a map_name GET PRANKED
+        print(picked_brawlers)
+        for brawler_name in picked_brawlers:
+            picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
+            picked_brawler_class = picked_brawler.brawler_class
+            for top_brawler in top_brawlers:
+                top_brawler_class = top_brawler.brawler_name.brawler_class
+                top_brawler_class = BrawlerClass.objects.get(class_name = top_brawler_class)
+                #print(f'{top_brawler} class is {top_brawler_class} and gets countered by {top_brawler_class.countered_by}')
+                if str(picked_brawler_class) in top_brawler_class.countered_by:
+                    #print('On ' + str(top_brawler) + ' is countered by ' + str(picked_brawler) + ' and has ' + str(top_brawler.viability) + ' viability')
+                    top_brawler.viability -= 0.35
+                    #print('Its new viability is: ' + str(top_brawler.viability))
+                if str(top_brawler_class) in picked_brawler_class.countered_by:
+                    top_brawler.viability += 0.35
+
+        
+        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
+
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
     
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
+        top_brawler.viability = round(top_brawler.viability,2)
 
-        top_brawler.viability = round(top_brawler.viability * 100,2)
-
-    return top_brawlers
+    for top_brawler in top_brawlers:
+        #print(top_brawler, top_brawler.viability)
+        continue
+    return top_brawlers[:16]
 
 def index(request):
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])

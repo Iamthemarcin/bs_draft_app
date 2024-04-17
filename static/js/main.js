@@ -85,7 +85,7 @@ function choose_brawler(brawler){
     $('.pick-box-picked').removeClass('pick-box-picked');
     $('.brawler-picked').css('opacity', 1)
     $('.brawler-picked').removeClass('brawler-picked');
-    pick_number = 1
+    pick_number = 0
     }
   retrieve_top_picks()
   pick_number++
@@ -93,11 +93,8 @@ function choose_brawler(brawler){
   searchbox.value = ''
   searchbox.focus()
   const all_brawlers = document.getElementsByClassName("brawler-img");
-  console.log(all_brawlers)
   Array.from(all_brawlers).forEach((brawler)=> {
-
     brawler.classList.remove('hide')
-    console.log('KURWO GRECKA')
   })
 
   }

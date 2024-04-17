@@ -4,9 +4,11 @@ function disp_dropdown(){
     dropdown_elements.each(function(i,obj){
         obj.classList.toggle('dropdown-content-display')
         $('#dropdown-search').focus()
-        searchInput = $('#dropdown-search')[0].value.toLowerCase()
+        searchInput = $('#dropdown-search').val()
         if (searchInput == ''){
             $('br').removeClass('hide')
+            $('.dropdown-col').removeClass('hide')
+            $('.dropdown-content-container').removeClass('hide')
         }
     })
 }
@@ -55,6 +57,8 @@ function change_map(){
     $('#current-mode-name').text(mode_name)
     $('#current-map-name').text(map_name)
     $('#current-selected-map').css("background-color", background_color)
+    $('#dropdown-search').val('')
+    //disp_dropdown will remove all hide classes and inputs when the input val is nothing 
     disp_dropdown()
 
     //get info bout the new map and change the top pick recommendations

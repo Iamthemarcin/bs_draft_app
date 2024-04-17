@@ -6,7 +6,7 @@ import requests
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
-from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Brawler_Class
+from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, BrawlerClass
 # Create your views here.
 
 #Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
@@ -53,15 +53,15 @@ class ManageDB:
 
     @staticmethod
     def update_brawler_classes():      
-        class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery':'Assasin', 'Controller':'Artillery', 'Marksman':'Assasin', 'Damage Dealer':'Marksman', 'Support':['Tank', 'Assasin'], 'Tank':['Damage Dealer', 'Controller']}
+        class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery':'Assassin', 'Controller':'Artillery', 'Marksman':'Assassin', 'Damage Dealer':'Marksman', 'Support':['Tank', 'Assassin'], 'Tank':['Damage Dealer', 'Controller']}
         
         for b_class,counters in class_counters.items():
             if isinstance(counters,list):
                 for counter in counters:
                     try:
-                        brawler_class = Brawler_Class.objects.filter(class_name = b_class)[0]
+                        brawler_class = BrawlerClass.objects.get(class_name = b_class)
                     except:
-                        brawler_class = Brawler_Class(class_name = b_class)
+                        brawler_class = BrawlerClass(class_name = b_class)
 
                     if counter in brawler_class.countered_by:
                         continue
@@ -69,9 +69,9 @@ class ManageDB:
                     brawler_class.save()
             else:
                     try:
-                        brawler_class = Brawler_Class.objects.filter(class_name = b_class)[0]
+                        brawler_class = BrawlerClass.objects.get(class_name = b_class)
                     except:
-                        brawler_class = Brawler_Class(class_name = b_class)
+                        brawler_class = BrawlerClass(class_name = b_class)
                     
                     if counters not in brawler_class.countered_by:
                         brawler_class.countered_by += counters                
@@ -87,7 +87,7 @@ class ManageDB:
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
             brawler_class = brawler['class']['name']
-            brawler_class = Brawler_Class.objects.filter(class_name = brawler_class)[0]
+            brawler_class = BrawlerClass.objects.filter(class_name = brawler_class)[0]
             brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
     @staticmethod
@@ -297,7 +297,6 @@ class CleaningDB:
     def fix_use_rate():
         win_rate_objects = WinRate.objects.all()
         for win_rate_obj in win_rate_objects:
-            use_rate = win_rate_obj.use_rate
             db_map = Map.objects.get(map_name = win_rate_obj.map_name)
             actual_use_rate = win_rate_obj.games_played/db_map.games_played
             if win_rate_obj.use_rate != actual_use_rate:
@@ -307,7 +306,7 @@ class CleaningDB:
 
 m = ManageDB()
 c = CleaningDB()
-#m.update_brawler_classes()
+m.update_brawler_classes()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
