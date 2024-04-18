@@ -105,6 +105,9 @@ function retrieve_top_picks(){
   picked_brawlers.each(function (index, brawler){
     brawler_info = brawler.className.split(' ')
     brawler_name = brawler_info[2].replaceAll('-', ' ')
+    if (brawler_name == '8 Bit' | brawler_name == 'R T'){ //for whatever reason those two are the only differently named ones in the unofficial api. all the rest dont get to keep the - in the name lol.
+      brawler_name = brawler_name.replaceAll(' ', '-')
+    }
     brawler_pick_number = brawler_info[1]
     brawler_data[brawler_pick_number-1] = brawler_name  //pick number starts from 1.
   })
@@ -112,6 +115,9 @@ function retrieve_top_picks(){
   for (let i = 0; i <17; i++){
     brawler_name = $(`#brawler_name${i}`).text().slice((i+1).toString().length + 2)
     brawler_name = brawler_name.replaceAll('-', ' ')
+    console.log(brawler_name)
+
+
     top_brawlers.push()
   }
   

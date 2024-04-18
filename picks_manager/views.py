@@ -84,6 +84,7 @@ class ManageDB:
         all_brawlers_json = all_brawlers_request.json()
         for brawler in all_brawlers_json['list']:
             brawler_name = brawler['name']
+            brawler_name = brawler_name.replace('-', ' ')
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
             brawler_class = brawler['class']['name']
