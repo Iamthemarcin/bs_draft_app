@@ -3,6 +3,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
 from rest_framework import serializers
+import datetime
 
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
@@ -19,6 +20,7 @@ class Map(models.Model):
     map_name = models.CharField(max_length = 30)
     mode_name = models.ForeignKey(Mode, on_delete = models.CASCADE)
     games_played = models.IntegerField()
+    image_url = models.CharField(max_length=100)
     def __str__(self):
         return self.map_name
 
@@ -84,6 +86,7 @@ class WinRateSerializer(serializers.Serializer):
 
 class Player(models.Model):
     player_tag = models.CharField(max_length = 20, primary_key = True)
+    last_checked = models.DateField(default = datetime.date.today)
 
 class LastPlayerChecked(models.Model):
     last_player_checked = models.IntegerField(primary_key= True, default = 0)

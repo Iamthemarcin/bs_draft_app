@@ -3,10 +3,12 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from PIL import Image
 import requests
+import datetime
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
 from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, BrawlerClass
+
 # Create your views here.
 
 #Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
@@ -16,8 +18,9 @@ from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Braw
 1. get_player_tags
 1. update_brawler_list
 1. update_brawler_pics
-1. update map list <-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
+1. update map list and win rates<-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
 2. update modes <- do this when icon missing
+2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterfuck already
 """
 
 
@@ -32,8 +35,9 @@ class ManageDB:
         'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
     }
     i = 0
+    curr_day = datetime.date.today()
     #function to navigate the data from brawl stars APIs, #data is json, search word is the key you look for, chosen_mode is used when you need a specific value for the key, results_list is what you store results in
-    def search_response(data, search_word, chosen_mode, results_list):
+    def search_response(self, data, search_word, chosen_mode, results, return_parent = False):
         if isinstance(data,dict):
             for key,value in data.items():
                 #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
@@ -41,15 +45,21 @@ class ManageDB:
                     if search_word.lower() == key.lower():
                         clean_value = value.replace('-', '')
                         if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
-                            results_list.append(value)
+                            if return_parent:  ##sometimes i need the whole object, but only one so break it baby.
+                                results['map_object'] = data
+                            else:
+                                results.append(value)
                 else:
                     if search_word == key:
-                        results_list.append(value)
+                        if return_parent:
+                            results.append(data)
+                        else:
+                            results.append(value)
                 if isinstance(value, dict) or isinstance(value, list):
-                    ManageDB.search_response(value, search_word, chosen_mode, results_list)
+                    self.search_response(value, search_word, chosen_mode, results, return_parent)
         if isinstance(data, list):
             for i in data:
-                ManageDB.search_response(i, search_word, chosen_mode, results_list)
+                self.search_response(i, search_word, chosen_mode, results, return_parent)
 
     @staticmethod
     def update_brawler_classes():      
@@ -101,7 +111,6 @@ class ManageDB:
             'Hot Zone':'rgba(227,59,80,255)',
             'Knockout':'rgba(247,131,28,255)',
         }
-        
         all_my_modes = Mode.objects.all()
         all_modes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
         all_modes = all_modes_request.json()
@@ -111,6 +120,19 @@ class ManageDB:
             mode.mode_icon = result[0]
             mode.mode_color = bg_colors[mode.mode_name]
             mode.save()
+    
+    def update_map_pics(self):
+        my_maps = Map.objects.all()
+        all_maps_request = requests.get('https://api.brawlapi.com/v1/maps')
+        all_maps = all_maps_request.json()
+        for map in my_maps:
+            clean_name = map.map_name.replace('\'', '')
+            map_obj = {}
+            self.search_response(all_maps, 'name', clean_name, map_obj, return_parent = True)
+            image_url = map_obj['map_object']['imageUrl']
+            map.image_url = image_url
+            map.save()
+            print(map)
 
     @staticmethod
     def update_brawler_pics():
@@ -193,26 +215,33 @@ class ManageDB:
     def update_map_list_and_winrate(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
-        def look_for_ranked_games(game_data, player_tag):
+        def look_for_ranked_games(game_data, player):
 
+            player_tag = player.player_tag
             if not 'items' in game_data:
                 print("No games retrieved")
                 return 
-                    
-            for battles in game_data['items']:         
+            #check if the last game was played within last x days.
+            last_game = len(game_data['items'])-1
+            date = game_data['items'][last_game]['battleTime']
+            year = int(date[:4])
+            month = int(date[4:6])
+            day = int(date[6:8])
+            game_time = datetime.date(year = year,month = month,day = day)
+            time_delta = player.last_checked - game_time
+            if time_delta.days < 1:
+                return
 
-                
-                self.i += 1
-                if self.i % 250 == 0:
-                    print(str(self.i) + " battles have been checked")
-                
+            for battles in game_data['items']:         
                 if battles['battle']:
                     try:
                         battle_type = battles['battle']['type']  
                     except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in pl anyways lol.
                         continue
                     if battle_type == 'soloRanked' or battle_type == 'teamRanked':
-                        
+                        self.i += 1
+                        if self.i % 50 == 0:
+                            print(str(self.i) + " ranked games have been checked")
                         ranked_game_map = str(battles['event']['map'])
                         ranked_game_mode = str(battles['battle']['mode'])
 
@@ -238,11 +267,9 @@ class ManageDB:
                         result = battles['battle']['result']
                         teams = battles['battle']['teams']
                         ManageDB.update_win_rate(player_tag, result, teams, db_map)    
-                    
                         return
             
-        def camel_case_to_normal(s):  ##TODO update maps function already takes too much time, save the modes without changing them. then use iexact/icontains whatever to find them and update them while doing the update modes func.
-            #gotta move as much work as possible away from here
+        def camel_case_to_normal(s):  ##TODO MAYBE move this somewhere else
             words = []
             start = 0
             for i, c in enumerate(s[1:], start = 1):
@@ -261,10 +288,10 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 45000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
+        ammount_of_battlelogs = 4  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
-        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand player tags and then go through them 100 at a time. If I went through all of them then go back to the beggining.
+        #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand best player tags and then go through them X at a time. If I went through all of them then go back to the beggining.
         if player_num > player_ammount - ammount_of_battlelogs:
             player_num = 0       
         
@@ -275,15 +302,18 @@ class ManageDB:
         #retrieve last games from players
         for player in players:
             player_tag = player.player_tag
+            date = datetime.date.today()
+            player.last_checked = date
+            player.save()
             player_tag_link = player_tag.replace('#', '')
             request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag_link)
             all_games = requests.get(request_link, self.headers)
             all_games = all_games.json()
-            look_for_ranked_games(all_games, player_tag)        
+            look_for_ranked_games(all_games, player)        
         return 
     
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
-    #and i dont want to. 
+    #and i dont want to make it execute longer. just run this after updating wr. 
 class CleaningDB:    
     @staticmethod
     def clean_up_the_maps():
@@ -295,7 +325,7 @@ class CleaningDB:
             map_list.pop(0)
         return
     @staticmethod
-    def fix_use_rate():
+    def fix_use_rate(): #userate got broken once by some divine intervention which i dont understand, cant reproduce
         win_rate_objects = WinRate.objects.all()
         for win_rate_obj in win_rate_objects:
             db_map = Map.objects.get(map_name = win_rate_obj.map_name)
@@ -307,13 +337,14 @@ class CleaningDB:
 
 m = ManageDB()
 c = CleaningDB()
-m.update_brawler_classes()
+#m.update_brawler_classes()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_modes()
 #m.update_map_list_and_winrate()
 #m.update_modes()
+#m.update_map_pics()
 
 #c.clean_up_the_maps()
 #c.fix_use_rate()
