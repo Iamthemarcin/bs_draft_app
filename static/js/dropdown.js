@@ -56,7 +56,7 @@ function change_map(){
     $('#current-map-icon').attr("src", map_icon_src)
     $('#current-mode-name').text(mode_name)
     $('#current-map-name').text(map_name)
-    $('#current-selected-map').css("background-color", background_color)
+    $('#current-selected-map-clipped-bg').css("background-color", background_color)
     $('#dropdown-search').val('')
     //disp_dropdown will remove all hide classes and inputs when the input val is nothing 
     disp_dropdown()

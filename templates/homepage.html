@@ -62,17 +62,30 @@
                     </div>
                     <div class="background-blue" >
                         <div class = "black-rectangle">
-                            <div class = "selected-map" id = "current-selected-map" style="background-color: {{ chosen_mode.mode_color }}">
-                                <!-- displays random map at first -->
-                                <div class = map-icon>
-                                    <img class = "gamemode-icon" id = "current-map-icon" src = "{{mode_icon_link}}">
-                                </div>
+                            <div class = "selected-map" id = "current-selected-map" >
+                                <!-- displays random map at first, can change via dropdown element -->
+                                <!-- this place is an unholy mess. I want the selected map to be clipped into a trapezoid shape, however
+                                this also clops its children. that means the map-info gets clipped. to prevent that i make this clipped-bg item, and set
+                                the background color to be clipped there. I do the same thing for the black rectangle, however there i can use the before
+                                to create pseudo element. Here i cant do this because i need to change the background color on map change. all in all this 
+                                is all holding on glue. Dont get me started on the way i handle dropdown somewhere else by making an invis button
+                                because of all the clippath bullshit hiding the dropdown list elements otherwise. Its 2 am. This isnt a comment this is a cry for help.
+                                 -->
+                                                
+                                <div id = "current-selected-map-clipped-bg" class = "selected-map-clipped-bg" style="background-color: {{ chosen_mode.mode_color }}"></div>
+                        
+                                <img class = "map-info" src = "{% static 'images/info-icon.png' %}">
+
+                                <img class = "gamemode-icon" id = "current-map-icon" src = "{{mode_icon_link}}">
+
                                 <div class = "mode-name" id = "current-mode-name">
                                     {{chosen_mode}}
                                 </div>
                                 <div class = "map-name" id = "current-map-name">
                                     {{chosen_map}}
                                 </div>
+
+
                                 <!-- onclick you can choose which map you want via the dropdown div -->
                             </div>
                         </div>
