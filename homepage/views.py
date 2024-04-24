@@ -10,7 +10,7 @@ from django.db.models import F
 from django.http import JsonResponse
 from rest_framework.renderers import JSONRenderer
 
-
+#function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
     if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
 
@@ -54,6 +54,7 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
 
     return top_brawlers[:16]
 
+#renders the page
 def index(request):
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])
     img_list = os.listdir(path)
@@ -65,7 +66,7 @@ def index(request):
     maps = list(all_maps)
     chosen_map_obj = random.choice(maps)
     chosen_mode = chosen_map_obj.mode_name
-    chosen_map = chosen_map_obj.map_name
+    chosen_map = chosen_map_obj
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
     #choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
     top_brawlers = get_top_brawlers(chosen_map,16)
@@ -78,7 +79,7 @@ def map_change(request):
     chosen_map = Map.objects.get(map_name = new_map)
     top_brawlers = get_top_brawlers(chosen_map.map_name, 16)
     serializer = WinRateSerializer(top_brawlers, many=True)
-    return JsonResponse(serializer.data, safe=False)
+    return JsonResponse({'brawlers':serializer.data, 'map_src': chosen_map.image_url}, safe=False)
 
 def brawler_pick(request):
     brawler_data = json.loads(request.body)['brawler_data']

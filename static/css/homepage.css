@@ -31,7 +31,7 @@ h5 {
 }
 
 .draft-container {
-    overflow: hidden;
+    overflow: visible;
     margin-top: 4rem;
     border: 1px solid #000000;
     width: 100%;
@@ -145,7 +145,21 @@ h5 {
     right: -3%;
     font-family: "LilitaOne";
     white-space: nowrap;
-    z-index: 300;
+    z-index: 21
+}
+
+.map-info:hover + .map-hover-pic{
+    display:flex;
+    position: absolute;
+    right: 5%;
+    top: -5%;
+    width: 100%;
+    height: auto;
+    transform: translate(140%);
+    z-index: 1;    
+}
+.map-hover-pic{
+    display:none;
 }
 
 

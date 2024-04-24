@@ -56,7 +56,7 @@ function change_map(){
     $('#current-map-icon').attr("src", map_icon_src)
     $('#current-mode-name').text(mode_name)
     $('#current-map-name').text(map_name)
-    $('#current-selected-map-clipped-bg').css("background-color", background_color)
+    $('#current-selected-map-clipped-bg').css("background-color", background_color) //cringe
     $('#dropdown-search').val('')
     //disp_dropdown will remove all hide classes and inputs when the input val is nothing 
     disp_dropdown()
@@ -73,7 +73,7 @@ function change_map(){
     })
     .then(response => response.json())
     .then(data => {
-        data.forEach(function(brawler, i) {
+        data['brawlers'].forEach(function(brawler, i) {
             $(`#brawler_name${i}`).text((i+1) + '. ' + brawler['brawler_name'])
             $(`#win_rate${i}`).children('strong').text( brawler['win_rate'] + '%')
             $(`#use_rate${i}`).children('strong').text(brawler['use_rate'] + '%')
@@ -84,6 +84,8 @@ function change_map(){
             new_source = img_source_array.join('/')
             $(`#brawler_img${i}`).attr('src', new_source)
         })
+        map_src = data['map_src']
+        $('#current-map-pic').attr('src', map_src)
     });
 }
 $('.dropdown-content').click(change_map)

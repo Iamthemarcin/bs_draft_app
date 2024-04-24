@@ -14,7 +14,6 @@
 
     <body>
         <div class="container">
-
             <div class="row mt-5 align-items-center justify-content-md-center">
                 <div class = "col2">
                     <img class = 'pl-logo' src="{% static 'images/pd_icon.svg' %}" alt="My image">
@@ -75,6 +74,8 @@
                                 <div id = "current-selected-map-clipped-bg" class = "selected-map-clipped-bg" style="background-color: {{ chosen_mode.mode_color }}"></div>
                         
                                 <img class = "map-info" src = "{% static 'images/info-icon.png' %}">
+                                
+                                <img class = "map-hover-pic" id = "current-map-pic" src = "{{ chosen_map.image_url }}">
 
                                 <img class = "gamemode-icon" id = "current-map-icon" src = "{{mode_icon_link}}">
 
