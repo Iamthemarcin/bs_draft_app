@@ -1,6 +1,23 @@
-window.onload = (event) => {
-  $('#search').focus()
-};
+$(document).ready(()=>{
+  brawler_search()
+  change_font_size()
+  $(document).keypress(function (event) {
+  let key = event.key
+  if (key == "r" && event.target.tagName == 'BODY'){
+    reset_picks()
+  }
+  if (key == "Enter" && event.target.id == 'search'){
+    first_brawler = $('.brawler-img:not(.hide)')[0]
+    choose_brawler(first_brawler)
+  }
+  console.log(key)
+  if (key == "Escape"){
+    $("#search").blur(); 
+    console.log('hi')
+  }
+
+});
+});
 
 
 function scroll_me_daddy(){
@@ -26,13 +43,13 @@ function change_font_size(){
     map_name.css( "font-size", `${font_size}vh` )
   }
 }
-change_font_size()
 
 function brawler_search(){
   const brawlers = document.getElementsByClassName("brawler-img")
   const searchInput = document.querySelector("#search")
   searchInput.addEventListener("input", (e) => {
     const input_value = e.target.value.toLowerCase()
+    console.log(input_value)
     Array.from(brawlers).forEach(function (brawler) {
       brawler.classList.add("hide")
       brawler_name = brawler.id.toLowerCase().slice(0,-4) // the names have .png at the end cuz i just use data from brawlify api, im SURE ill change that later :)
@@ -41,12 +58,15 @@ function brawler_search(){
       }
     });
   })
+
 }
-brawler_search()
 
 
 pick_number = 1
+
+
 function choose_brawler(brawler){
+  console.log(brawler)
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
   //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it
@@ -80,14 +100,11 @@ function choose_brawler(brawler){
   }
   // if all brawlers are picked the next brawler click just removes all the picks
   else{
-    imgs = $(".picked-brawler-img")
-    imgs.remove();
-    $('.pick-box-picked').removeClass('pick-box-picked');
-    $('.brawler-picked').css('opacity', 1)
-    $('.brawler-picked').removeClass('brawler-picked');
-    pick_number = 0
-    }
+    reset_picks()
+    pick_number--
+  }
   retrieve_top_picks()
+
   pick_number++
   searchbox = document.querySelector("#search")
   searchbox.value = ''
@@ -97,6 +114,16 @@ function choose_brawler(brawler){
     brawler.classList.remove('hide')
   })
 
+}
+
+function reset_picks(){
+  imgs = $(".picked-brawler-img")
+  imgs.remove();
+  $('.pick-box-picked').removeClass('pick-box-picked');
+  $('.brawler-picked').css('opacity', 1)
+  $('.brawler-picked').removeClass('brawler-picked');
+  pick_number = 1
+  retrieve_top_picks()
   }
 
 function retrieve_top_picks(){
@@ -115,7 +142,6 @@ function retrieve_top_picks(){
   for (let i = 0; i <17; i++){
     brawler_name = $(`#brawler_name${i}`).text().slice((i+1).toString().length + 2)
     brawler_name = brawler_name.replaceAll('-', ' ')
-    console.log(brawler_name)
 
 
     top_brawlers.push()

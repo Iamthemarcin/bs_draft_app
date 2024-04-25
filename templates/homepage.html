@@ -22,7 +22,8 @@
             </div>
             <div class="row align-items-center justify-content-md-center">
                 <div class="draft-container background-black">
-                    
+                    <img class = "reset-button" src = "{% static 'images/reset.png' %}" onclick = reset_picks()>
+                    <p class = "reset-text"> R </p>
                     <!-- from what i understand in order to display over other elements the parent needs to be at least a sibling of the element displayed 
                         on so i cant put my display list inside of the map container  -->
                     <input type = "search-text " id = "dropdown-search" onkeyup="map_search()" placeholder="Search for map"></h3>

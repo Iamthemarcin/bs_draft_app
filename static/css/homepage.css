@@ -44,8 +44,31 @@ h5 {
 .background-black{
     background-color: black;
     padding-top:6%;
+}
+.reset-button{
+    position: absolute;
+    right: 1%;
+    top: 2%;
+    width: 2%;
+}
 
-    
+.reset-button:hover{
+    cursor: pointer;
+}
+
+.reset-button:hover + .reset-text{
+    display: flex;
+}
+
+.reset-text{
+    color: white;
+    position: absolute;
+    position: absolute;
+    right: -1%;
+    top: -2%;
+    width: 2%;
+    border: #000;
+    display: none;
 }
 
 .background-blue{
