@@ -10,7 +10,6 @@ $(document).ready(()=>{
     first_brawler = $('.brawler-img:not(.hide)')[0]
     choose_brawler(first_brawler)
   }
-  console.log(key)
   if (key == "Escape"){
     $("#search").blur(); 
     console.log('hi')
@@ -49,7 +48,6 @@ function brawler_search(){
   const searchInput = document.querySelector("#search")
   searchInput.addEventListener("input", (e) => {
     const input_value = e.target.value.toLowerCase()
-    console.log(input_value)
     Array.from(brawlers).forEach(function (brawler) {
       brawler.classList.add("hide")
       brawler_name = brawler.id.toLowerCase().slice(0,-4) // the names have .png at the end cuz i just use data from brawlify api, im SURE ill change that later :)
@@ -66,7 +64,6 @@ pick_number = 1
 
 
 function choose_brawler(brawler){
-  console.log(brawler)
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
   //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it

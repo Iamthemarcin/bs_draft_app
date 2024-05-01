@@ -13,7 +13,6 @@ from rest_framework.renderers import JSONRenderer
 #function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
     if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
-
         team1 = set()
         team2 = set()
         for i,brawler_name in enumerate(picked_brawlers, start = 1): #determine which brawlers belong to your and enemy team depending which player is choosing the pick
@@ -23,8 +22,10 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                 team2.add(brawler_name)
         if len(picked_brawlers) in [1,2,5]:
             enemy_team = team1
+            players_team = team2
         else:
             enemy_team = team2
+            players_team = team1
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=picked_brawlers)[:ammount*3] ### map_name is foreign key to map object which has a map_name GET PRANKED
         #if a brawler counters enemies his viability goes up, if it gets countered it goes down.
         for brawler_name in enemy_team:
@@ -41,7 +42,19 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                 if str(top_brawler_class) in picked_brawler_class.countered_by:
                     top_brawler.viability += 0.15
 
-        
+        #synergies. For example if your team has a thrower (artillery) already you never want another thrower.
+
+        #IF SITE EVER BECOMES SLOW THIS CAN BE EASILY IMPROVED.
+        for brawler_name in players_team:
+            picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
+            picked_brawler_class = picked_brawler.brawler_class
+
+            for top_brawler in top_brawlers:
+                top_brawler_class = top_brawler.brawler_name.brawler_class
+                top_brawler_class = BrawlerClass.objects.get(class_name = top_brawler_class)
+
+                if str(picked_brawler_class) == str(top_brawler_class) == 'Artillery':
+                    top_brawler.viability -= 1 
         top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
 
     else:
