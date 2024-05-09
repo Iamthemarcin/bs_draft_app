@@ -101,8 +101,8 @@ class ManageDB:
             brawler_class = BrawlerClass.objects.filter(class_name = brawler_class)[0]
             brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
-    @staticmethod
-    def update_modes():
+    
+    def update_modes(self): #use this after updating maps and cleaning maps, at least 1k battlelogs. 
         bg_colors = {
             'Gem Grab':'rgba(154,61,243,255)',
             'Heist':'rgba(214,92,211,255)',
@@ -112,11 +112,11 @@ class ManageDB:
             'Knockout':'rgba(247,131,28,255)',
         }
         all_my_modes = Mode.objects.all()
-        all_modes_request = requests.get('https://api.brawlapi.com/v1/gamemodes')
+        all_modes_request = requests.get('https://api.brawlify.com/v1/gamemodes')
         all_modes = all_modes_request.json()
         for mode in all_my_modes:
             result = []
-            ManageDB.search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
+            self.search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
             mode.mode_icon = result[0]
             mode.mode_color = bg_colors[mode.mode_name]
             mode.save()
@@ -288,7 +288,7 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 4  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
+        ammount_of_battlelogs = 20000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand best player tags and then go through them X at a time. If I went through all of them then go back to the beggining.
@@ -317,11 +317,11 @@ class ManageDB:
 class CleaningDB:    
     @staticmethod
     def clean_up_the_maps():
-        max_amm_of_maps = 18
+        max_amm_of_maps = 18 #sometimes peoples games from previous season get thru to the db, this func cleans up those games from db
         map_list = list(Map.objects.all().order_by('games_played'))
         while len(map_list) > max_amm_of_maps:
             print("Map removed: ", map_list[0].map_name)
-            Map.objects.get(map_name = map_list[0].map_name).delete()
+            Map.objects.filter(map_name = map_list[0].map_name).delete()
             map_list.pop(0)
         return
     @staticmethod
@@ -341,10 +341,10 @@ c = CleaningDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_modes()
-#m.update_map_list_and_winrate()
+m.update_map_list_and_winrate()
 #m.update_modes()
 #m.update_map_pics()
 
 #c.clean_up_the_maps()
 #c.fix_use_rate()
+
