@@ -341,7 +341,7 @@ c = CleaningDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-m.update_map_list_and_winrate()
+#m.update_map_list_and_winrate()
 #m.update_modes()
 #m.update_map_pics()
 

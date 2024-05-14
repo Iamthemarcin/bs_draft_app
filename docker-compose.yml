@@ -1,10 +1,16 @@
 version : '3.8'
 
-service:
+services:
   django:
     container_name : django
     build: 
-      context: ./power_draft
+      context: ./bs_draft_app
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
-      - ./power
+      - ./bs_draft_app:/usr/src/app/
+    ports:
+      - 8001:8000
+    environment:
+      - DEBUG = 1
+      - SECRET_KEY = 05sd9uvg9e83r4hw0823rfhe843
+      - ALLOWED_HOSTS = localhost, 127.0.0.1
