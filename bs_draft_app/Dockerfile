@@ -3,8 +3,8 @@ FROM ubuntu:22.04
 WORKDIR /usr/src/app
 
 #no bufferin before terminal
-ENV PYTHONBUFFERED = 1
-
+ENV PYTHONBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE 1
 
 RUN apt update && apt upgrade
 RUN apt install python3 python3-pip -y
@@ -18,4 +18,4 @@ RUN pip3 install -r requirements.txt
 COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
 COPY . /usr/src/app/
 
-ENTRYPOINT ["/usr/src/app/entrypoint.sh"]
+ENTRYPOINT ["bash", "-e", "/usr/src/app/entrypoint.sh"]

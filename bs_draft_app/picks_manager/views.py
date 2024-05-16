@@ -325,7 +325,7 @@ class CleaningDB:
             map_list.pop(0)
         return
     @staticmethod
-    def fix_use_rate(): #userate got broken once by some divine intervention which i dont understand, cant reproduce
+    def fix_use_rate(): #userate got broken once by some divine intervention which i dont understand, cant reproduce, maybe learn how to write tests!!
         win_rate_objects = WinRate.objects.all()
         for win_rate_obj in win_rate_objects:
             db_map = Map.objects.get(map_name = win_rate_obj.map_name)
