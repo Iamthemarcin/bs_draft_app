@@ -15,12 +15,13 @@ services:
     depends_on:
       - db
   db:
+    container_name: postgres
     image: postgres:15
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=marcin
       - POSTGRES_PASSWORD=otyhaker
       - POSTGRES_DB=power_draft
 volumes:
-  postgres_data:
+  postgres-data:

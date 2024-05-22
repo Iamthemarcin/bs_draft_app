@@ -139,14 +139,13 @@ function retrieve_top_picks(){
   for (let i = 0; i <17; i++){
     brawler_name = $(`#brawler_name${i}`).text().slice((i+1).toString().length + 2)
     brawler_name = brawler_name.replaceAll('-', ' ')
-
-
     top_brawlers.push()
   }
   
   //brawler_name = brawler.id.toString().slice(0,-4)
   map_name = $('#current-map-name').text().replace(/\/\n/g, '').trim()
   //send the picked brawler info to the server then update the top reccommended picks accordingly
+  console.log(top_brawlers)
   fetch("brawler_pick", {
     method: "POST",
     headers: {

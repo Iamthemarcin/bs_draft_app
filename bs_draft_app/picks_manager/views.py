@@ -94,7 +94,8 @@ class ManageDB:
         all_brawlers_json = all_brawlers_request.json()
         for brawler in all_brawlers_json['list']:
             brawler_name = brawler['name']
-            brawler_name = brawler_name.replace('-', ' ')
+            if brawler_name == "Larry-&-Lawrie":
+                brawler_name = brawler_name.replace('-', ' ')
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
             brawler_class = brawler['class']['name']
@@ -190,8 +191,12 @@ class ManageDB:
         
         for player in teams[winning_team]:
             brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
-            
+            try: 
+                brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
+            except Brawler.DoesNotExist: 
+                print(brawler_name, " isnt in the database") 
+                break
+
             try:
                 wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
                 wr_obj.games_played += 1
@@ -202,8 +207,11 @@ class ManageDB:
         
         for player in teams[1-winning_team]:
             brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
-
+            try:
+                brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
+            except:
+                print(brawler_name, "isnt in the database")
+                break
             try:
                 wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
                 wr_obj.games_played += 1
@@ -236,7 +244,7 @@ class ManageDB:
                 if battles['battle']:
                     try:
                         battle_type = battles['battle']['type']  
-                    except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in pl anyways lol.
+                    except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
                         continue
                     if battle_type == 'soloRanked' or battle_type == 'teamRanked':
                         self.i += 1
@@ -288,7 +296,7 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 20000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
+        ammount_of_battlelogs = 10000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
 
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand best player tags and then go through them X at a time. If I went through all of them then go back to the beggining.
