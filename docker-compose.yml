@@ -1,6 +1,10 @@
 version : '3.8'
 
 services:
+  redis:
+    image: redis:latest
+    container_name: redis
+
   django:
     container_name : django
     build: 
@@ -14,6 +18,19 @@ services:
       - ./.env.dev
     depends_on:
       - db
+      - redis
+
+  celery:
+    container_name : celery
+    build: 
+      context: ./bs_draft_app
+    volumes:
+      - ./bs_draft_app:/usr/src/app/
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - db
+      - redis
   db:
     container_name: postgres
     image: postgres:15
@@ -23,5 +40,6 @@ services:
       - POSTGRES_USER=marcin
       - POSTGRES_PASSWORD=otyhaker
       - POSTGRES_DB=power_draft
+  
 volumes:
   postgres-data:
