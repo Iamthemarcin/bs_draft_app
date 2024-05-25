@@ -220,7 +220,7 @@ class ManageDB:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
 
-    def update_map_list_and_winrate(self): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
+    def update_map_list_and_winrate(self, ammount_of_battlelogs): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
         def look_for_ranked_games(game_data, player):
@@ -296,8 +296,6 @@ class ManageDB:
             player_num_object = LastPlayerChecked(last_player_checked = 0)
             player_num = 0
 
-        ammount_of_battlelogs = 10000  #CHANGE THIS AMMOUNT WHEN DEBUGGIN STUFF, ITS HERE!!!! --------------------------------------------
-
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand best player tags and then go through them X at a time. If I went through all of them then go back to the beggining.
         if player_num > player_ammount - ammount_of_battlelogs:
@@ -349,7 +347,7 @@ c = CleaningDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_map_list_and_winrate()
+#m.update_map_list_and_winrate(10)
 #m.update_modes()
 #m.update_map_pics()
 

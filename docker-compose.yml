@@ -31,6 +31,8 @@ services:
     depends_on:
       - db
       - redis
+    command: celery --app=power_draft worker -l INFO 
+
   db:
     container_name: postgres
     image: postgres:15
