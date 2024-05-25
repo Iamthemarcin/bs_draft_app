@@ -38,7 +38,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'homepage',
     'picks_manager',
-    'update_wr_celery',
 ]
 
 MIDDLEWARE = [
