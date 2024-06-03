@@ -259,23 +259,30 @@ class ManageDB:
 
                         mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
                         mode = camel_case_to_normal(mode)
-                        db_mode = Mode(mode_name = mode)
-                        db_mode.save()
+                        try: 
+                            db_mode = Mode.objects.get(mode_name = mode)
+                        except Mode.DoesNotExist:
+                            db_mode = Mode(mode_name = mode)
+                            db_mode.save()
+
                         map = ranked_game_map.replace("'","\"").replace("\"s", "'s")
                         try:
                             db_map = Map.objects.get(map_name = map, mode_name= mode) 
                             db_map.games_played += 1
                             db_map.save()
-                        #if map doesnt exist create it, if it does add a game played to the map
+                        #if map doesnt exist and there are less than 18 maps in db, create it, if it does add a game played to the map
                         except Map.DoesNotExist:
-                            db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
-                            db_map.save()
-                        
+                            map_list = list(Map.objects.all().order_by('games_played'))
+                            if len(map_list) < 18:
+                                db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
+                                db_map.save()
+                            else:
+                                continue
                         #this part is for wr calcualting, wasnt planning on it being here but here we are
                         result = battles['battle']['result']
                         teams = battles['battle']['teams']
                         ManageDB.update_win_rate(player_tag, result, teams, db_map)    
-                        return
+                        return 
             
         def camel_case_to_normal(s):  ##TODO MAYBE move this somewhere else
             words = []
@@ -316,7 +323,7 @@ class ManageDB:
             all_games = requests.get(request_link, self.headers)
             all_games = all_games.json()
             look_for_ranked_games(all_games, player)        
-        return 
+        return self.i
     
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
     #and i dont want to make it execute longer. just run this after updating wr. 
@@ -347,7 +354,7 @@ c = CleaningDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_map_list_and_winrate(10)
+#m.update_map_list_and_winrate(5)
 #m.update_modes()
 #m.update_map_pics()
 

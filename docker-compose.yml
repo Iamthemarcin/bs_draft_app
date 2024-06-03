@@ -33,6 +33,18 @@ services:
       - redis
     command: celery --app=power_draft worker -l INFO 
 
+  celery-beat:
+    build: 
+      context: ./bs_draft_app
+    command: celery -A power_draft beat -l info
+    volumes:
+      - ./bs_draft_app:/usr/src/app/
+    env_file:
+      - ./.env.dev
+    depends_on:
+      - redis
+      - db
+
   db:
     container_name: postgres
     image: postgres:15

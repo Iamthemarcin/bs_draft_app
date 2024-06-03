@@ -82,6 +82,9 @@ def index(request):
     #choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
     top_brawlers = get_top_brawlers(chosen_map,16)
     context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
+    
+    #update_db.delay(10)
+    
     return render(request, "homepage.html", context)
 
 def map_change(request):
