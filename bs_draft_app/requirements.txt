@@ -2,18 +2,18 @@
 #python-apt
 
 
-#problematic stuff
+#STUFF THAT CRASHED AT LEAST ONCE
 cmake
 #dbus-python == 1.2.18
 wheel
 reportlab
 #pycups
 Pillow
+django-crontab 
 
-#normal stuff alphabetical
+#STUFF THAT BEHAVES WELL AND IS NICE
 bcrypt==3.2.0
 blinker==1.4
-celery==5.4.0
 certifi==2020.6.20
 chardet==4.0.0
 click==8.1.7
@@ -52,7 +52,6 @@ psycopg==3.1.18
 psycopg2==2.9.9
 psycopg2-binary==2.9.9
 ptyprocess==0.7.0
-pycairo==1.20.1
 Pygments==2.13.0
 PyJWT==2.3.0
 pymacaroons==0.13.0
@@ -63,7 +62,6 @@ python-dateutil==2.8.2
 pytz==2022.1
 pyxdg==0.27
 PyYAML==6.0.1
-redis
 requests==2.25.1
 SecretStorage==3.3.1
 six==1.16.0

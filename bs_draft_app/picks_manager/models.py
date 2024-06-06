@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
-from rest_framework import serializers
+from rest_framework import serializers  # type: ignore
 import datetime
 
 

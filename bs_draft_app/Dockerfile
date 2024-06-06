@@ -1,21 +1,30 @@
-FROM ubuntu:22.04
+FROM python:3.12-alpine
 
+ENV PYTHONUNBUFFERED 1
+# Creating working directory
+RUN mkdir /usr/src/app
 WORKDIR /usr/src/app
 
-#no bufferin before terminal
-ENV PYTHONBUFFERED 1
-ENV PYTHONDONTWRITEBYTECODE 1
-
-RUN apt update && apt upgrade
-RUN apt install python3 python3-pip -y
-
-COPY ./requirements.txt /usr/src/app/requirements.txt
-
-RUN apt install libpq-dev python3-dev libcairo2-dev pkg-config python3-apt -y 
-
-RUN pip3 install -r requirements.txt
-
-COPY ./entrypoint.sh /usr/src/app/entrypoint.sh
+# Copying requirements
 COPY . /usr/src/app/
 
-ENTRYPOINT ["bash", "-e", "/usr/src/app/entrypoint.sh"]
+# Wizardry script from some article made by the only person in the world who knows alpine commands well. 
+RUN apk add --no-cache --virtual .build-deps \
+    ca-certificates gcc postgresql-dev linux-headers musl-dev \
+    libffi-dev jpeg-dev zlib-dev \
+    && pip install -r requirements.txt \
+    && find /usr/local \
+        \( -type d -a -name test -o -name tests \) \
+        -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
+        -exec rm -rf '{}' + \
+    && runDeps="$( \
+        scanelf --needed --nobanner --recursive /usr/local \
+                | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+                | sort -u \
+                | xargs -r apk info --installed \
+                | sort -u \
+    )" \
+    && apk add --virtual .rundeps $runDeps \
+    && apk del .build-deps
+
+ENTRYPOINT ["/usr/src/app/entrypoint.sh"]

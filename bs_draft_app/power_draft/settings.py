@@ -12,9 +12,6 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-import power_draft.tasks
-
-from celery.schedules import crontab  # type: ignore
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -34,6 +31,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS").split(" ")
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -143,13 +141,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER", "redis://redis:6379/0")
-CELERY_RESULT_BACKEND = os.environ.get("CELERY_BACKEND", "redis://redis:6379/0")
-
-CELERY_BEAT_SCHEDULE = {
-    "update_db":{
-        "task": "power_draft.tasks.update_db",
-        "schedule": crontab(minute=15, hour=1),
-        "args":(40000,),
-    },
-}
+CRONJOBS = [
+    ('* * * * *', 'picks_manager.cron.update_db')
+]
+CRONTAB_COMMAND_SUFFIX = '2>&1'

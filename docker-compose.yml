@@ -1,9 +1,6 @@
 version : '3.8'
 
 services:
-  redis:
-    image: redis:latest
-    container_name: redis
 
   django:
     container_name : django
@@ -12,42 +9,17 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./bs_draft_app:/usr/src/app/
+    restart: unless-stopped
     ports:
       - 8001:8000
     env_file:
       - ./.env.dev
     depends_on:
       - db
-      - redis
-
-  celery:
-    container_name : celery
-    build: 
-      context: ./bs_draft_app
-    volumes:
-      - ./bs_draft_app:/usr/src/app/
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - db
-      - redis
-    command: celery --app=power_draft worker -l INFO 
-
-  celery-beat:
-    build: 
-      context: ./bs_draft_app
-    command: celery -A power_draft beat -l info
-    volumes:
-      - ./bs_draft_app:/usr/src/app/
-    env_file:
-      - ./.env.dev
-    depends_on:
-      - redis
-      - db
 
   db:
     container_name: postgres
-    image: postgres:15
+    image: postgres:15.7-alpine
     volumes:
       - postgres-data:/var/lib/postgresql/data
     environment:
@@ -55,5 +27,15 @@ services:
       - POSTGRES_PASSWORD=otyhaker
       - POSTGRES_DB=power_draft
   
+  cron:
+    container_name: cron
+    build: 
+      context: ./bs_draft_app
+    env_file:
+    - .env.dev
+    depends_on:
+    - db
+    command: crond -f  # as a long-running foreground process
+
 volumes:
   postgres-data:
