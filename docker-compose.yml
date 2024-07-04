@@ -9,6 +9,7 @@ services:
     command: python3 manage.py runserver 0.0.0.0:8000
     volumes:
       - ./bs_draft_app:/usr/src/app/
+      - ./data/web:/vol/web
     restart: unless-stopped
     ports:
       - 8001:8000

@@ -10,12 +10,11 @@ then
 
     echo "PostgreSQL started"
 fi
-echo "$1"
+
 if [ $1 = crond ]; then
   python3 manage.py crontab add
-  python3 manage.py crontab show
 fi
-#python3 manage.py flush --no-input
-python3 manage.py migrate
+
+#python3 manage.py flush --no-input 
 
 exec "$@"
