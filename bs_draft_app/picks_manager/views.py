@@ -32,7 +32,7 @@ from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Braw
 
 class ManageDB:
     headers = {
-        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjVlN2I0NTFlLThkM2MtNDkwNC1iZGRiLTU1Mzc4MmRiOWQ3MCIsImlhdCI6MTcwODE4Mjc5Mywic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjEwOS4yMDQuMTc2LjIyIl0sInR5cGUiOiJjbGllbnQifV19.A2yGpfyPIsZxyFJDPzIw2_0oZI5kb6OZPPhwiISMUf08IYGT31Eh9_XvBpbY0ezCcZWdXRAyfBkti_TsawsCGA"
+        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImE3OTNkMDg5LWFlYTUtNGYxNC05YWY5LTg1M2Q4ZDllY2U4MCIsImlhdCI6MTcyMDc4NTkxMSwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMTA5LjE5Ny4xODUuMjEyIl0sInR5cGUiOiJjbGllbnQifV19.6YO4DWQ7_unOGOZ41eb35fZ9ecSaevHHmMYnVVPvUAMTEdS0F9Xde6xY7DhhO7wdqc9VdMdGoOEk-dhTv2fNqA"
     }
     i = 0
     curr_day = datetime.date.today()
@@ -166,7 +166,7 @@ class ManageDB:
             top_players = requests.get(f'https://api.brawlstars.com/v1/rankings/{country}/players', self.headers)
             top_players = top_players.json()
             top_players_tags = []
-            ManageDB.search_response(top_players,'tag', None, top_players_tags)
+            self.search_response(top_players,'tag', None, top_players_tags)
 
             for player_tag in top_players_tags:
                 db_player_tag = Player(player_tag = player_tag)
@@ -227,7 +227,7 @@ class ManageDB:
 
             player_tag = player.player_tag
             if not 'items' in game_data:
-                print("No games retrieved")
+                print("No games retrieved" + str(game_data))
                 return 
             #check if the last game was played within last x days.
             last_game = len(game_data['items'])-1
@@ -281,7 +281,7 @@ class ManageDB:
                         #this part is for wr calcualting, wasnt planning on it being here but here we are
                         result = battles['battle']['result']
                         teams = battles['battle']['teams']
-                        ManageDB.update_win_rate(player_tag, result, teams, db_map)    
+                        self.update_win_rate(player_tag, result, teams, db_map)    
                         return 
             
         def camel_case_to_normal(s):  ##TODO MAYBE move this somewhere else
@@ -320,7 +320,14 @@ class ManageDB:
             player.save()
             player_tag_link = player_tag.replace('#', '')
             request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag_link)
-            all_games = requests.get(request_link, self.headers)
+            try: 
+                all_games = requests.get(request_link, self.headers, timeout = 2)
+            except requests.exceptions.RequestException as e:
+                print(f"Error fetching the game data from player {player}. Fix it one day maybe. No clue what causes it yet")
+                print(e)
+                continue
+
+
             all_games = all_games.json()
             look_for_ranked_games(all_games, player)        
         return self.i
@@ -354,10 +361,9 @@ c = CleaningDB()
 #m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
-#m.update_map_list_and_winrate(5)
+#m.update_map_list_and_winrate(15)
 #m.update_modes()
 #m.update_map_pics()
 
 #c.clean_up_the_maps()
 #c.fix_use_rate()
-

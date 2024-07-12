@@ -85,9 +85,6 @@ def index(request):
     top_brawlers = get_top_brawlers(chosen_map,16)
     context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
     
-    #update_db(10)
-    #update_db.delay(10)
-    
     return render(request, "homepage.html", context)
 
 def map_change(request):

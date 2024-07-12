@@ -1,4 +1,4 @@
-#!/bin/ash
+#!/bin/sh
 
 if [ "$DATABASE" = "postgres" ]
 then
@@ -11,10 +11,8 @@ then
     echo "PostgreSQL started"
 fi
 
-if [ $1 = crond ]; then
+if [ "$1" = "crond" ]; then
   python3 manage.py crontab add
 fi
-
-#python3 manage.py flush --no-input 
 
 exec "$@"

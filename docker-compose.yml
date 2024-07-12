@@ -5,11 +5,10 @@ services:
   django:
     container_name : django
     build: 
-      context: ./bs_draft_app
-    command: python3 manage.py runserver 0.0.0.0:8000
+      context: .
+      dockerfile: Dockerfile-dev
     volumes:
-      - ./bs_draft_app:/usr/src/app/
-      - ./data/web:/vol/web
+      - "./bs_draft_app:/bs_draft_app"
     restart: unless-stopped
     ports:
       - 8001:8000
@@ -17,7 +16,7 @@ services:
       - ./.env.dev
     depends_on:
       - db
-
+    command: python3 manage.py runserver 0.0.0.0:8000
   db:
     container_name: postgres
     image: postgres:15.7-alpine
@@ -31,7 +30,9 @@ services:
   cron:
     container_name: cron
     build: 
-      context: ./bs_draft_app
+      context: .
+      dockerfile: Dockerfile-dev
+
     env_file:
     - .env.dev
     depends_on:
