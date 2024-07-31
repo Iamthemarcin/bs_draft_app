@@ -32,7 +32,7 @@ from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Braw
 
 class ManageDB:
     headers = {
-        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImE3OTNkMDg5LWFlYTUtNGYxNC05YWY5LTg1M2Q4ZDllY2U4MCIsImlhdCI6MTcyMDc4NTkxMSwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMTA5LjE5Ny4xODUuMjEyIl0sInR5cGUiOiJjbGllbnQifV19.6YO4DWQ7_unOGOZ41eb35fZ9ecSaevHHmMYnVVPvUAMTEdS0F9Xde6xY7DhhO7wdqc9VdMdGoOEk-dhTv2fNqA"
+        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImMxMTI2NzlhLTQ4MzUtNDhlZi04Y2I3LWU5ZmFiZjRjYTViYyIsImlhdCI6MTcyMTIxNTU1MSwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMTA5LjE5Ny4xODcuNjAiXSwidHlwZSI6ImNsaWVudCJ9XX0.7c6VyFiA0r2q6C9YNE2li7g-RkkWAlYH5WWVKuxZbxbG9vSwwJDIkPEUMuzgy-WgLnfVXRwy7E2yYIbA3kyf5g"
     }
     i = 0
     curr_day = datetime.date.today()
@@ -323,7 +323,7 @@ class ManageDB:
             try: 
                 all_games = requests.get(request_link, self.headers, timeout = 2)
             except requests.exceptions.RequestException as e:
-                print(f"Error fetching the game data from player {player}. Fix it one day maybe. No clue what causes it yet")
+                print(f"Error fetching the game data from player {player}. Fix it one day maybe. No clue what causes it yet, setting bigger timeout helps a lot tho.")
                 print(e)
                 continue
 

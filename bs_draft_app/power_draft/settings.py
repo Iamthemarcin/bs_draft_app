@@ -31,7 +31,6 @@ ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 # Application definition
 
 INSTALLED_APPS = [
-    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -83,7 +82,7 @@ WSGI_APPLICATION = 'power_draft.wsgi.application'
 DATABASES = {
     "default": {
         'ENGINE': 'django.db.backends.postgresql',
-        "NAME": os.environ.get("DB_NAME", BASE_DIR / "db.sqlite3"),
+        "NAME": os.environ.get("DB_NAME"),
         "USER": os.environ.get("DB_USER", "user"),
         "PASSWORD": os.environ.get("DB_PASS", "password"),
         "HOST": os.environ.get("DB_HOST", "localhost"),
@@ -140,8 +139,3 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-CRONJOBS = [
-    ('* * * * *', 'picks_manager.cron.update_db')
-]
-CRONTAB_COMMAND_SUFFIX = '2>&1'

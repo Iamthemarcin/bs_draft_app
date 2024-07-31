@@ -1,17 +1,16 @@
 services:
   django:
+    container_name: django
     build:
       context: .
+      dockerfile: Dockerfile-prod
     restart: always
     volumes:
       - static-data:/vol/web
+    env_file:
+      - ./.env
     environment:
-      - DB_HOST=db
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - SECRET_KEY=${SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - DJANGO=true
     depends_on:
       - db
 
@@ -38,18 +37,19 @@ services:
 
   cron:
     container_name: cron
-    build: 
+    build:
       context: .
+      dockerfile: Dockerfile-prod
+
+    env_file:
+      - ./.env
     environment:
-      - DB_HOST=db
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - SECRET_KEY=${SECRET_KEY}
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
+      - CRON=true
     depends_on:
     - db
-    command: crond -f  # as a long-running foreground process
+    user: bs_draft_app
+    command: crond -f -l 2  # Keeps the container running
+
 
 volumes:
   postgres-data:

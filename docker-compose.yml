@@ -1,7 +1,6 @@
 version : '3.8'
 
 services:
-
   django:
     container_name : django
     build: 
@@ -26,18 +25,19 @@ services:
       - POSTGRES_USER=marcin
       - POSTGRES_PASSWORD=otyhaker
       - POSTGRES_DB=power_draft
-  
+      
   cron:
     container_name: cron
     build: 
       context: .
       dockerfile: Dockerfile-dev
-
     env_file:
     - .env.dev
+    environment:
+      - CRON=true
     depends_on:
     - db
-    command: crond -f  # as a long-running foreground process
+    command:  crond -f -l 2 # Keeps the container running
 
 volumes:
   postgres-data:

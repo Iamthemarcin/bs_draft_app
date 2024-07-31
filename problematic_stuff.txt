@@ -1,3 +1,4 @@
+#STUFF THAT CAUSED TOO MANY ISSUES FOR ME TO BOTHER AND DONT **SEEM** TO BE REQUIRED
 apturl==0.5.2
 Brlapi==0.8.3
 command-not-found==0.3

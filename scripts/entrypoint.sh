@@ -11,8 +11,10 @@ then
     echo "PostgreSQL started"
 fi
 
-if [ "$1" = "crond" ]; then
-  python3 manage.py crontab add
+if [ "$CRON" = "true" ]
+then
+    echo "Cron has started"
 fi
+
 
 exec "$@"

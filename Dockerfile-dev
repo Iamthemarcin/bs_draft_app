@@ -11,14 +11,23 @@ COPY ./requirements.txt /bs_draft_app
 COPY ./bs_draft_app .
 COPY ./scripts /scripts/
 
-EXPOSE 8000
 
-# Wizardry script from some article made by the only person in the world who knows alpine commands well. 
+
+EXPOSE 8000
+#crontab stuff
+RUN apk add --update apk-cron && rm -rf /var/cache/apk/*
+ADD crontab.txt /crontab.txt
+RUN chmod 755 /scripts/update_db.sh
+RUN /usr/bin/crontab /crontab.txt
+
+#build fails without this stuff wheels aint spinnin
 RUN apk add --no-cache --virtual .build-deps \
     ca-certificates gcc postgresql-dev linux-headers musl-dev \
     libffi-dev jpeg-dev zlib-dev 
-
+#reqs
 RUN pip install -r requirements.txt 
+
+# Wizardry script from some article made by the only person in the world who knows alpine commands well. 
 
 RUN find /usr/local \
         \( -type d -a -name test -o -name tests \) \
@@ -37,5 +46,8 @@ RUN apk del .build-deps
 
 RUN chmod 755 /scripts/entrypoint.sh
 
-ENTRYPOINT ["/scripts/entrypoint.sh"]
+ENV PATH="/scripts:/py/bin:$PATH"
+
+
+ENTRYPOINT ["entrypoint.sh"]
 
