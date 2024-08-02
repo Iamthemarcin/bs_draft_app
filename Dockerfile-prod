@@ -34,17 +34,8 @@ COPY ./bs_draft_app /bs_draft_app
 COPY ./scripts /scripts
 
 EXPOSE 8000
-#cron stuff and creating user&group bs_draft_app
-ADD crontab.txt /etc/crontabs/bs_draft_app
-RUN apk add --update apk-cron && rm -rf /var/cache/apk/* 
-RUN chmod 755 /scripts/update_db.sh
-RUN chmod u+s /usr/bin/crontab && \
+RUN chmod 755 /scripts/update_db.sh && \
     adduser --disabled-password --no-create-home bs_draft_app && \
-    apk add --update --no-cache busybox-suid && \
-    apk add --update apk-cron && \
-    chown bs_draft_app:bs_draft_app /etc/crontabs/bs_draft_app && \
-    chmod 600 /etc/crontabs/bs_draft_app && \
-#the rest    
     apk add --update --no-cache postgresql-client&& \
     mkdir -p /vol/web/static && \
     chown -R bs_draft_app:bs_draft_app /vol && \
