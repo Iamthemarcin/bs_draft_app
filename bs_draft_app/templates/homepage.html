@@ -9,7 +9,7 @@
         <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
         <link rel="stylesheet" href="{% static 'css/homepage.css' %}">
         <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
-        <title> powerdraft </title>
+        <title> Brawl Draft </title>
     </head>
 
     <body>
@@ -18,7 +18,7 @@
                 <div class = "col2">
                     <img class = 'pl-logo' src="{% static 'images/pd_icon.svg' %}" alt="My image">
                 </div>
-                <div class = "col3 "><h1>Powerdraft {{ MEDIA_URL }} </h1> </div>
+                <div class = "col3 "><h1>Brawl Draft {{ MEDIA_URL }} </h1> </div>
             </div>
             <div class="row align-items-center justify-content-md-center">
                 <div class="draft-container background-black">
@@ -69,7 +69,7 @@
                                 the background color to be clipped there. I do the same thing for the black rectangle, however there i can use the before
                                 to create pseudo element. Here i cant do this because i need to change the background color on map change. all in all this 
                                 is all holding on glue. Dont get me started on the way i handle dropdown somewhere else by making an invis button
-                                because of all the clippath bullshit hiding the dropdown list elements otherwise. Its 2 am. This isnt a comment this is a cry for help.
+                                because of all the clippath bullshit hiding the dropdown list elements otherwise. Its 2 am.
                                  -->
                                                 
                                 <div id = "current-selected-map-clipped-bg" class = "selected-map-clipped-bg" style="background-color: {{ chosen_mode.mode_color }}"></div>

@@ -76,7 +76,7 @@ h5 {
     position: relative;
     border-width: inherit;
     height: 66%;
-    background-image:url('../images/test3.png'),
+    background-image:url('../images/bg-icons-low-op.png'),
     radial-gradient(circle, rgba(7, 117, 193, 1) 6%, rgba(5, 69, 169, 1) 91%);
     background-size:100%,100%;
     animation-name: icons-movement;
@@ -88,8 +88,6 @@ h5 {
     50% {background-position-y: -236px;}
     100% {ackground-position-y: 0px;}
   }
-
-
 
 .black-rectangle{
     height:18%;
