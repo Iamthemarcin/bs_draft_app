@@ -12,10 +12,7 @@ COPY ./scripts /scripts/
 
 EXPOSE 8000
 #crontab stuff
-RUN apk add --update apk-cron && rm -rf /var/cache/apk/*
-ADD crontab.txt /crontab.txt
 RUN chmod 755 /scripts/update_db.sh
-RUN /usr/bin/crontab /crontab.txt
 
 #build fails without this stuff wheels aint spinnin
 RUN apk add --no-cache --virtual .build-deps \

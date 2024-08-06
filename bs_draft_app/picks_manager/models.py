@@ -4,6 +4,8 @@ from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
 from rest_framework import serializers  # type: ignore
 import datetime
+from django.contrib import admin
+
 
 
 PERCENTAGE_VALIDATOR = [MinValueValidator(0), MaxValueValidator(100)]
@@ -16,14 +18,19 @@ class Mode(models.Model):
     def __str__(self):
         return self.mode_name
 
+
 class Map(models.Model):
     map_name = models.CharField(max_length = 30)
     mode_name = models.ForeignKey(Mode, on_delete = models.CASCADE)
     games_played = models.IntegerField()
     image_url = models.CharField(max_length=100)
+
+
     def __str__(self):
         return self.map_name
 
+    class Meta:
+        ordering = ("games_played",)
 
 class BrawlerClass(models.Model):
 
