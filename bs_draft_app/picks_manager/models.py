@@ -95,7 +95,8 @@ class Player(models.Model):
     player_tag = models.CharField(max_length = 20, primary_key = True)
     last_checked = models.DateField(default = datetime.date.today)
 
-class LastPlayerChecked(models.Model):
+class ScannedData(models.Model):
     last_player_checked = models.IntegerField(primary_key= True, default = 0)
+    scanned_games = models.IntegerField(default = 0)
     class Meta:
-        verbose_name_plural = "LastPlayerChecked"
+        verbose_name_plural = "ScannedData"

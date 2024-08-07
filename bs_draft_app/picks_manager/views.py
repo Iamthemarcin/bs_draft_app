@@ -7,7 +7,7 @@ import datetime
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
-from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, BrawlerClass
+from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass
 
 # Create your views here.
 
@@ -22,8 +22,6 @@ from .models import Map, Mode, Player, LastPlayerChecked, Brawler, WinRate, Braw
 2. update modes <- do this when icon missing
 2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterfuck already
 """
-
-
 
 
 #updating what kinda modes there are in powerleague.
@@ -296,11 +294,11 @@ class ManageDB:
             return result
         
         #I only want to send ammount_of_battlelogs requests per map update call
-        player_num_object = LastPlayerChecked.objects.first()
+        player_num_object = ScannedData.objects.first()
         try:
             player_num = player_num_object.last_player_checked
         except AttributeError:
-            player_num_object = LastPlayerChecked(last_player_checked = 0)
+            player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0)
             player_num = 0
 
         player_ammount = Player.objects.count()
@@ -310,7 +308,7 @@ class ManageDB:
         
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
         player_num_object.delete()
-        s = LastPlayerChecked(last_player_checked = player_num + ammount_of_battlelogs)
+        s = ScannedData(last_player_checked = player_num + ammount_of_battlelogs)
         s.save()
         #retrieve last games from players
         for player in players:

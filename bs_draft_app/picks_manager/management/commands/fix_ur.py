@@ -5,7 +5,7 @@ from picks_manager.views import CleaningDB
 
 def fix_ur():
     C = CleaningDB()
-    C.fix_use_rate()    
+    C.fix_use_rate()
     
 class Command(BaseCommand):
     help = 'Updates the database with new games from brawl API'
