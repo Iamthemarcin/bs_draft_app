@@ -8,7 +8,7 @@ def fix_ur():
     C.fix_use_rate()
     
 class Command(BaseCommand):
-    help = 'Updates the database with new games from brawl API'
+    help = 'Fixes the use rate whenever it gets bugged. A workaround.'
     def handle(self, *args, **options):
         fix_ur()
         self.stdout.write(self.style.SUCCESS('You have (probably) fixed the use rate'))

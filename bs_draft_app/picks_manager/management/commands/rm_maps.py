@@ -10,7 +10,7 @@ def rm_maps(removal_amm):
     Map.objects.filter(map_name__in = names).delete()
     print('hi')
 class Command(BaseCommand):
-    help = 'Updates the database with new games from brawl API'
+    help = 'Removes the least played maps from the database.'
     def handle(self, *args, **options):
         removal_amm = options['removal_amm']
 
