@@ -9,8 +9,12 @@ def update_db():
     scanned_games = Manager.update_map_list_and_winrate(scan_ammount)
     print(f"scanned {scanned_games} ranked games")
     scan_data = ScannedData.objects.first()
-    scan_data.scanned_games += scanned_games
-    scan_data.save()
+    scanned_games += scan_data.scanned_games
+    last_player_checked = scan_data.last_player_checked 
+    scan_data.delete()
+    new_scan = ScannedData(last_player_checked = last_player_checked, scanned_games = scanned_games)
+    new_scan.save()
+    
 
     
 class Command(BaseCommand):

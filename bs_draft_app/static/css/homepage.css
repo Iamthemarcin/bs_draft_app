@@ -8,6 +8,9 @@
 
 body {
     background-color: 7AC4DC;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 
@@ -340,4 +343,18 @@ h5 {
     z-index: 2;
 }
 
+footer{
+    padding-top: 0.5%;
+    text-align: center;
+    display: inline;
+    background-color: rgba(242, 182, 242, 0.5);
+    overflow: auto;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+    margin-top: auto;
+}
+footer > p{
+    font-size: 0.9em;
+}
 /* radial-gradient(circle, rgba(7, 117, 193, 1) 6%, rgba(5, 69, 169, 1) 91%); */

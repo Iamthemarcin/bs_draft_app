@@ -297,6 +297,7 @@ class ManageDB:
         player_num_object = ScannedData.objects.first()
         try:
             player_num = player_num_object.last_player_checked
+            scanned_games = player_num_object.scanned_games
         except AttributeError:
             player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0)
             player_num = 0
@@ -308,7 +309,7 @@ class ManageDB:
         
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
         player_num_object.delete()
-        s = ScannedData(last_player_checked = player_num + ammount_of_battlelogs)
+        s = ScannedData(last_player_checked = player_num + ammount_of_battlelogs, scanned_games = scanned_games)
         s.save()
         #retrieve last games from players
         for player in players:
