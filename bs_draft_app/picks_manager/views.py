@@ -30,7 +30,7 @@ from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerCla
 
 class ManageDB:
     headers = {
-        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6IjE3NGRmNjQ0LTU1ZGQtNGE0Zi04YmM3LTkxODMwYTFlMDk3MyIsImlhdCI6MTcyMjg3ODMzMiwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiMTA5LjE5Ny4xODcuNjAiLCI1MS4yMC44LjEiXSwidHlwZSI6ImNsaWVudCJ9XX0.VQkyy6g2TwH4RTKT2016cROpCWAf2sFux-UkdAZ1vongxeHbtcAHtwBLAPG7K4coGYGKONN1SmdTMfB_c1WU1w"
+        'Authorization': "Bearer: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiIsImtpZCI6IjI4YTMxOGY3LTAwMDAtYTFlYi03ZmExLTJjNzQzM2M2Y2NhNSJ9.eyJpc3MiOiJzdXBlcmNlbGwiLCJhdWQiOiJzdXBlcmNlbGw6Z2FtZWFwaSIsImp0aSI6ImY2NTUxZGY0LWNiMzMtNDQ5OC1hZjg3LWFmMmQ3OTFmZWMyYyIsImlhdCI6MTcyMzQ2MDYwMCwic3ViIjoiZGV2ZWxvcGVyLzQ5MzI1NGU4LTQ1YTQtNjViYy1hMGEyLTI3ZmM0ZjQ4NWZhZiIsInNjb3BlcyI6WyJicmF3bHN0YXJzIl0sImxpbWl0cyI6W3sidGllciI6ImRldmVsb3Blci9zaWx2ZXIiLCJ0eXBlIjoidGhyb3R0bGluZyJ9LHsiY2lkcnMiOlsiODQuMjQ5LjEwLjEzMiIsIjUxLjIwLjguMSIsIjEwOS4xOTcuMTg3LjYwIl0sInR5cGUiOiJjbGllbnQifV19.7wdD2JH2dnD-glB7yGueEUljcxQNh4dF_UjgiMMWOZfcrehfgIyZLNX1MpgNH0oGeF5voBkGloRMUkp6T5xTOA"
     }
     i = 0
     curr_day = datetime.date.today()
@@ -171,8 +171,8 @@ class ManageDB:
                 if not Player.objects.filter(player_tag = player_tag).exists():
                     db_player_tag.save()
         return
-    @staticmethod
-    def update_win_rate(player_tag, result, teams, map):
+    
+    def update_win_rate(self,player_tag, result, teams, map):
         player_team = 1
         team_0_brawlers = []
 
@@ -192,7 +192,9 @@ class ManageDB:
             try: 
                 brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
             except Brawler.DoesNotExist: 
-                print(brawler_name, " isnt in the database") 
+                print(brawler_name, "isnt in the database. Updating database.")
+                self.update_brawler_list()
+                self.update_brawler_pics()
                 break
 
             try:
@@ -207,8 +209,10 @@ class ManageDB:
             brawler_name = player['brawler']['name']
             try:
                 brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
-            except:
-                print(brawler_name, "isnt in the database")
+            except Brawler.DoesNotExist:
+                print(brawler_name, "isnt in the database. Updating database.")
+                self.update_brawler_list()
+                self.update_brawler_pics()
                 break
             try:
                 wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
