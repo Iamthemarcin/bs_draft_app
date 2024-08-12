@@ -20,7 +20,7 @@ from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerCla
 1. update_brawler_pics
 1. update map list and win rates<-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
 2. update modes <- do this when icon missing
-2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterfuck already
+2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterf already
 """
 
 
