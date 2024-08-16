@@ -4,7 +4,7 @@ from picks_manager.views import ManageDB
 from picks_manager.models import ScannedData
 
 def update_db():
-    scan_ammount = 15
+    scan_ammount = 50
     Manager = ManageDB()
     scanned_games = Manager.update_map_list_and_winrate(scan_ammount)
     print(f"scanned {scanned_games} ranked games")
@@ -14,8 +14,6 @@ def update_db():
     scan_data.delete()
     new_scan = ScannedData(last_player_checked = last_player_checked, scanned_games = scanned_games)
     new_scan.save()
-    
-
     
 class Command(BaseCommand):
     help = 'Updates the database with new games from brawl API'

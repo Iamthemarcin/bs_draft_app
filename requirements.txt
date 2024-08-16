@@ -5,6 +5,7 @@
 #STUFF THAT CRASHED AT LEAST ONCE
 cmake
 #dbus-python == 1.2.18
+debugpy
 wheel
 reportlab
 #pycups

@@ -61,7 +61,11 @@ class Brawler(models.Model):
     rarity = models.CharField(max_length = 11, choices = BRAWLER_RARITIES, default = RARE)
     image_url = models.CharField(max_length = 200)
     brawler_class = models.ForeignKey(BrawlerClass, max_length = 25, on_delete = models.DO_NOTHING)
-
+    easy_to_counter = models.CharField(max_length=6, default = "no")
+    has_pets = models.CharField(max_length=6, default = "no")
+    countered_by_pets = models.CharField(max_length=6, default = "no")
+    counters_pets = models.CharField(max_length=6, default = "no")
+    
     def __str__(self):
         return self.brawler_name
 
@@ -70,7 +74,7 @@ class WinRateQuerySet(models.QuerySet):
     def calc_win_rate(self):
         return self.annotate(win_rate=F('games_won')/F('games_played'))
     def calc_viability(self):
-        ayaya = self.annotate(viability = ExpressionWrapper(F('games_won')*Decimal('1.75')/(F('games_played')) + F('use_rate'),output_field = FloatField())).filter(games_won__gt = 10) ##if less than 4 games i dont care bout u sorry mr object.
+        ayaya = self.annotate(viability = ExpressionWrapper(F('games_won')*Decimal('1.75')/(F('games_played')) + F('use_rate'),output_field = FloatField())).filter(games_won__gt = 10) ##if less than 10 games i dont care bout u sorry mr object.
         return ayaya
 class WinRate(models.Model):
     class Meta:

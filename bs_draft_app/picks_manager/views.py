@@ -9,6 +9,7 @@ from django.conf import settings
 from django.templatetags.static import static
 from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass
 
+
 # Create your views here.
 
 #Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
@@ -88,6 +89,7 @@ class ManageDB:
 
     @staticmethod
     def update_brawler_list():        
+        #updating the brawlers properties based on api
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
         all_brawlers_json = all_brawlers_request.json()
         for brawler in all_brawlers_json['list']:
@@ -100,7 +102,29 @@ class ManageDB:
             brawler_class = BrawlerClass.objects.filter(class_name = brawler_class)[0]
             brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
-    
+        #updating the brawler properties based on my csv document
+        
+        x = static('brawler_traits.csv')
+        with open(f'.{x}', 'r+') as f:
+            brawlers = f.read().splitlines() 
+
+            for brawler_properties in brawlers[1:]:
+                brawler_properties_list = brawler_properties.split(",")
+                brawler_name = brawler_properties_list[0]
+                easy_to_counter = brawler_properties_list[1]
+                has_pets = brawler_properties_list[2]
+                countered_by_pets = brawler_properties_list[3]
+                counters_pets = brawler_properties_list[4]
+                db_brawler = Brawler.objects.get(brawler_name = brawler_name)
+                db_brawler.brawler_name = brawler_name
+                db_brawler.easy_to_counter = easy_to_counter
+                db_brawler.has_pets = has_pets
+                db_brawler.countered_by_pets = countered_by_pets
+                db_brawler.counters_pets = counters_pets
+                db_brawler.save()
+                HACK_REMOVE = 1
+            f.close()
+
     def update_modes(self): #use this after updating maps and cleaning maps, at least 1k battlelogs. 
         bg_colors = {
             'Gem Grab':'rgba(154,61,243,255)',
@@ -361,7 +385,7 @@ class CleaningDB:
 m = ManageDB()
 c = CleaningDB()
 #m.update_brawler_classes()
-#m.update_brawler_list()
+m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_map_list_and_winrate(15)

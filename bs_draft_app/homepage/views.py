@@ -10,12 +10,44 @@ from django.db.models import F
 from django.http import JsonResponse
 from picks_manager.views import ManageDB
 
+
+def check_counterability_and_pick_rate(top_brawlers, picked_brawlers = None):
+    #if the draft phase is in the early stages you should not pick brawlers that are easily counterable.
+    #the base classes don't really do a good job of showing which ones would fit here so I made a custom
+    #field by just assigning easy_to_counter based on my feel/experience
+    if not picked_brawlers or len(picked_brawlers) < 4:
+        for top_brawler in top_brawlers:
+            
+            #brawlers with super low pick rate are unfairly favoured because ppl who play them usually 
+            #know what they're doing and a general player will do much worse than those guys.
+            use_rate = top_brawler.use_rate *100
+            if use_rate < 5: 
+                #in %. when pick rate is 0 viability goes down by 0.25. When its around 5% it 
+                #goes down by 0
+                top_brawler.viability -= (0.05*use_rate +0.25)
+
+
+            easy_to_counter = str(top_brawler.brawler_name.easy_to_counter)
+            if easy_to_counter == "Yes":
+                top_brawler.viability -= 1
+                
+            if easy_to_counter == "Sorta":
+                top_brawler.viability -= 0.5
+    return top_brawlers
+
+
 #function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
+
     if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
         team1 = set()
         team2 = set()
         for i,brawler_name in enumerate(picked_brawlers, start = 1): #determine which brawlers belong to your and enemy team depending which player is choosing the pick
+             # The pick order is like this: 
+             # 1. team1 
+             # 2,3.team2 
+             # 4,5. team1 
+             # 6. team2
             if i in [1,4,5]:
                 team1.add(brawler_name)
             else:
@@ -27,11 +59,43 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
             enemy_team = team2
             players_team = team1
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability').exclude(brawler_name__in=picked_brawlers)[:ammount*3] ### map_name is foreign key to map object which has a map_name GET PRANKED
-        #if a brawler counters enemies his viability goes up, if it gets countered it goes down.
+        check_counterability_and_pick_rate(top_brawlers, picked_brawlers)
+
+        #if a brawler class counters enemies class his viability goes up, if it gets countered it goes down.
+        #similarly if a brawler has pets, his viability goes up or down depending if pets are good vs enemy brawlers.
         for brawler_name in enemy_team:
             picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
             picked_brawler_class = picked_brawler.brawler_class
+            has_pets = picked_brawler.has_pets
             for top_brawler in top_brawlers:
+                counters_pets = top_brawler.brawler_name.counters_pets
+                countered_by_pets = top_brawler.brawler_name.countered_by_pets
+                
+                #if enemy brawler has pets and top brawler is good into pets, his viability goes up
+                if has_pets == "Yes":
+                    if counters_pets == "Yes":
+                        top_brawler.viability += 0.5
+                    elif counters_pets == "Sorta":
+                        top_brawler.viability += 0.25
+                elif has_pets == "Sorta":
+                    if counters_pets == "Yes":
+                        top_brawler.viability += 0.25
+                    elif counters_pets == "Sorta":
+                        top_brawler.viability += 0.15
+                
+                #if enemy brawler has pets and top brawler is bad into pets, his viability goes down
+                if countered_by_pets == "Yes":
+                    if has_pets == "Yes":
+                        top_brawler.viability -= 0.5
+                    if has_pets == "Sorta":
+                        top_brawler.viability -= 0.25
+                elif countered_by_pets == "Sorta":
+                    if has_pets == "Yes":
+                        top_brawler.viability -= 0.25
+                    elif has_pets == "Sorta":
+                        top_brawler.viability -= 0.15
+
+                #the section responsible for classes and their counters.
                 top_brawler_class = top_brawler.brawler_name.brawler_class
                 top_brawler_class = BrawlerClass.objects.get(class_name = top_brawler_class)
                 #print(f'{top_brawler} class is {top_brawler_class} and gets countered by {top_brawler_class.countered_by}')
@@ -54,11 +118,14 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                 top_brawler_class = BrawlerClass.objects.get(class_name = top_brawler_class)
 
                 if str(picked_brawler_class) == str(top_brawler_class) == 'Artillery':
-                    top_brawler.viability -= 1 
+                    top_brawler.viability -= 99
         top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
 
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
+        check_counterability_and_pick_rate(top_brawlers, picked_brawlers)
+        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
+
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
         top_brawler.win_rate = round(top_brawler.games_won *100/top_brawler.games_played,2)
@@ -68,13 +135,13 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
 
 #renders the page
 def index(request):
+    m = ManageDB() #this is here so i can trigger stuff from picksmanager views manually when debugging.
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])
     img_list = os.listdir(path)
     half = len(img_list)//2
     top_row = img_list[:half]
     bottom_row = img_list[half:]
     my_map = Map.objects.get(map_name = 'Undermine')
-    print('hello' + str(my_map))
     #choose a random map and mode
     all_maps = Map.objects.all().order_by('mode_name')
     maps = list(all_maps)
