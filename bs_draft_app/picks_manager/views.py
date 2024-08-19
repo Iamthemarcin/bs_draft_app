@@ -385,7 +385,7 @@ class CleaningDB:
 m = ManageDB()
 c = CleaningDB()
 #m.update_brawler_classes()
-m.update_brawler_list()
+#m.update_brawler_list()
 #m.update_brawler_pics()
 #m.get_player_tags()
 #m.update_map_list_and_winrate(15)

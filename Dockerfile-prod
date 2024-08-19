@@ -4,7 +4,7 @@ LABEL maintainer="milczanowski.marcin01@gmail.com"
 ENV PYTHONUNBUFFERED 1
 WORKDIR /bs_draft_app
 
-
+# stage 1-making the python environment for the app
 COPY ./requirements.txt /bs_draft_app/requirements.txt
 
 RUN python -m venv /py && \
@@ -28,6 +28,7 @@ RUN python -m venv /py && \
 
 FROM python:3.12-alpine
 
+#stage-2 copying the env without unnecessary dependencies and making the app
 WORKDIR /bs_draft_app
 COPY --from=builder /py /py
 COPY ./bs_draft_app /bs_draft_app
@@ -38,9 +39,14 @@ RUN chmod 755 /scripts/update_db.sh && \
     adduser --disabled-password --no-create-home bs_draft_app && \
     apk add --update --no-cache postgresql-client&& \
     mkdir -p /vol/web/static && \
+#permission stuff    
     chown -R bs_draft_app:bs_draft_app /vol && \
     chmod -R 755 /vol && \
     chmod -R +x /scripts &&\
+    chown bs_draft_app:bs_draft_app static/brawler_traits.csv &&\
+    chown bs_draft_app:bs_draft_app static/country_codes &&\
+    chmod 755 static/brawler_traits.csv &&\
+    chmod 755 static/country_codes &&\
 #optimize space, articles are op
     find /usr/local \
 \( -type d -a -name test -o -name tests \) \
