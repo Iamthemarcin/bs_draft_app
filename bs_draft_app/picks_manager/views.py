@@ -85,8 +85,13 @@ class ManageDB:
                     if counters not in brawler_class.countered_by:
                         brawler_class.countered_by += counters                
                         brawler_class.save()
+        #crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
+        crow = Brawler.objects.get(brawler_name = "Crow")
+        support_class = BrawlerClass.objects.get(class_name = "Support")
+        print(support_class.class_name)
+        crow.brawler_class = support_class
+        crow.save()
         
-
     @staticmethod
     def update_brawler_list():        
         #updating the brawlers properties based on api
@@ -124,6 +129,7 @@ class ManageDB:
                 db_brawler.save()
                 HACK_REMOVE = 1
             f.close()
+
 
     def update_modes(self): #use this after updating maps and cleaning maps, at least 1k battlelogs. 
         bg_colors = {
