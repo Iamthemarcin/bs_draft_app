@@ -276,6 +276,12 @@ h5 {
     position: relative;
 }
 
+.rainbow-border{
+    border: 3px solid transparent;
+    border-image: linear-gradient(to bottom right, #b827fc 0%, #2c90fc 25%, #b8fd33 50%, #fec837 75%, #fd1892 100%);
+    border-image-slice: 1;
+}
+
 .left-team{
     justify-content: flex-end;
     padding-right:3.3vw;
@@ -341,6 +347,10 @@ h5 {
     font-size: 1.6vh;
     white-space: nowrap;
     z-index: 2;
+}
+
+.top-brawler:hover{
+    cursor: pointer;
 }
 
 footer{

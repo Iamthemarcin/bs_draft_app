@@ -64,12 +64,28 @@ pick_number = 1
 
 
 function choose_brawler(brawler){
+  
+  //check if brawler has been picked through the top_brawlers list. If it has change the brawler variable to the same brawler but in
+  //the main brawler list (it has all the attrs i need and i need to gray that one out etc etc many reasons ok)
+  if (brawler.classList.contains("top-brawler")){
+    brawler_name = brawler.src.split("/").pop()
+    brawler = document.querySelector(`.brawler-img[id='${brawler_name}']`)
+  }
+  
   //check if the brawler has been picked, if not add the picked class
   if (brawler.classList.contains("brawler-picked")){return}
-  //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it
+  //get the next player box in order that doesnt have the picked class and then add the image of the picked brawler to it.
+  //remove the border from that box and add it to the next one.
   const picked_brawler_img_src = brawler.src
   player_box = document.querySelector(".pick-image:not(.pick-box-picked)#p" + pick_number);
   if(player_box){
+    //remove the rainbow border from curr pick and add it to the next pick, to showcase which player is picking next
+    player_box.children[0].classList.remove("rainbow-border")
+    next_player_box = document.querySelector(".pick-image:not(.pick-box-picked)#p" + (pick_number+1));
+    if (next_player_box){
+      next_player_box.children[0].classList.add("rainbow-border")
+    }
+    
     brawler.classList.add("brawler-picked")
     brawler.style.opacity = 0.35 //signal that the brawler has been picked
     player_pick_image = player_box.children[0]
@@ -105,7 +121,14 @@ function choose_brawler(brawler){
   pick_number++
   searchbox = document.querySelector("#search")
   searchbox.value = ''
-  searchbox.focus()
+  //i want to focus on the searchbox element so people can type without scrolling to it.
+  var cursorFocus = function(elem) {
+    var x = window.scrollX, y = window.scrollY;
+    elem.focus();
+    window.scrollTo(x, y);
+  }
+  cursorFocus(searchbox)
+
   const all_brawlers = document.getElementsByClassName("brawler-img");
   Array.from(all_brawlers).forEach((brawler)=> {
     brawler.classList.remove('hide')
@@ -120,6 +143,7 @@ function reset_picks(){
   $('.brawler-picked').css('opacity', 1)
   $('.brawler-picked').removeClass('brawler-picked');
   pick_number = 1
+  $('#p1 img').addClass("rainbow-border")
   retrieve_top_picks()
   }
 
