@@ -2,20 +2,19 @@ $(document).ready(()=>{
   brawler_search()
   change_font_size()
   $(document).keypress(function (event) {
-  let key = event.key
-  if (key == "r" && event.target.tagName == 'BODY'){
-    reset_picks()
-  }
-  if (key == "Enter" && event.target.id == 'search'){
-    first_brawler = $('.brawler-img:not(.hide)')[0]
-    choose_brawler(first_brawler)
-  }
-  if (key == "Escape"){
-    $("#search").blur(); 
-    console.log('hi')
-  }
-
-});
+    let key = event.key
+    if (key == "r" && event.target.tagName == 'BODY'){
+      reset_picks()
+    }
+    if (key == "Enter" && event.target.id == 'search'){
+      first_brawler = $('.brawler-img:not(.hide)')[0]
+      choose_brawler(first_brawler)
+    }
+    if (key == "Escape"){
+      $("#search").blur(); 
+    }
+  });
+  console.log(document.getElementsByClassName('draft-container')[0].getBoundingClientRect())
 });
 
 
@@ -169,7 +168,6 @@ function retrieve_top_picks(){
   //brawler_name = brawler.id.toString().slice(0,-4)
   map_name = $('#current-map-name').text().replace(/\/\n/g, '').trim()
   //send the picked brawler info to the server then update the top reccommended picks accordingly
-  console.log(top_brawlers)
   fetch("brawler_pick", {
     method: "POST",
     headers: {
