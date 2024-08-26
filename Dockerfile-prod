@@ -43,10 +43,8 @@ RUN chmod 755 /scripts/update_db.sh && \
     chown -R bs_draft_app:bs_draft_app /vol && \
     chmod -R 755 /vol && \
     chmod -R +x /scripts &&\
-    chown bs_draft_app:bs_draft_app static/brawler_traits.csv &&\
-    chown bs_draft_app:bs_draft_app static/country_codes &&\
-    chmod 755 static/brawler_traits.csv &&\
-    chmod 755 static/country_codes &&\
+    chown -R bs_draft_app:bs_draft_app static/misc &&\
+    chmod -R 755 static/misc &&\
 #optimize space, articles are op
     find /usr/local \
 \( -type d -a -name test -o -name tests \) \
