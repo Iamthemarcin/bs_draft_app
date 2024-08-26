@@ -1,0 +1,19 @@
+.portrait-messsage{
+    display: none;
+    font-size: 2rem;
+    font-family: 'LilitaOne';
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+
+@media only screen and (orientation: portrait) {
+    .portrait-messsage{
+        display:flex
+    }
+    .no-portrait-mode{
+        display: none;
+    }
+}
+

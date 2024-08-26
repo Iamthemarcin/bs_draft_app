@@ -39,7 +39,9 @@ RUN find /usr/local \
 
 RUN apk del .build-deps 
 
-RUN chmod 755 /scripts/entrypoint.sh
+RUN chmod 755 /scripts/entrypoint.sh &&\
+chmod -R 755 static
+
 
 ENV PATH="/scripts:/py/bin:$PATH"
 

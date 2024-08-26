@@ -349,6 +349,10 @@ h5 {
     z-index: 2;
 }
 
+.top-brawler{
+    width: 100%;
+    aspect-ratio: 1/1 !important;
+}
 .top-brawler:hover{
     cursor: pointer;
 }
@@ -363,8 +367,14 @@ footer{
     bottom: 0;
     width: 100%;
     margin-top: auto;
+    height: 8.5%;
+    font-size: 0.9vw;
+    font-weight: bold;
+    overflow: hidden;
 }
+
 footer > p{
-    font-size: 0.9em;
+    font-size: 0.8vw;
+    font-weight: lighter;
 }
 /* radial-gradient(circle, rgba(7, 117, 193, 1) 6%, rgba(5, 69, 169, 1) 91%); */

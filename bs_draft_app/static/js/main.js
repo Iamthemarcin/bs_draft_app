@@ -14,9 +14,7 @@ $(document).ready(()=>{
       $("#search").blur(); 
     }
   });
-  console.log(document.getElementsByClassName('draft-container')[0].getBoundingClientRect())
 });
-
 
 function scroll_me_daddy(){
   var scrollable_container = document.getElementsByClassName('brawlers-box')[0];
@@ -118,16 +116,18 @@ function choose_brawler(brawler){
   retrieve_top_picks()
 
   pick_number++
+  
   searchbox = document.querySelector("#search")
   searchbox.value = ''
-  //i want to focus on the searchbox element so people can type without scrolling to it.
-  var cursorFocus = function(elem) {
-    var x = window.scrollX, y = window.scrollY;
-    elem.focus();
-    window.scrollTo(x, y);
+  //i want to focus on the searchbox element so people can type without scrolling to it. Not on mobile tho cuz its annoying
+  if (window.innerWidth > 992){
+    var cursorFocus = function(elem) {
+      var x = window.scrollX, y = window.scrollY;
+      elem.focus();
+      window.scrollTo(x, y);
+    }
+    cursorFocus(searchbox)
   }
-  cursorFocus(searchbox)
-
   const all_brawlers = document.getElementsByClassName("brawler-img");
   Array.from(all_brawlers).forEach((brawler)=> {
     brawler.classList.remove('hide')

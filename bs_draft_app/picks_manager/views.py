@@ -109,7 +109,7 @@ class ManageDB:
             brawler.save()
         #updating the brawler properties based on my csv document
         
-        x = static('brawler_traits.csv')
+        x = static('misc/brawler_traits.csv')
         with open(f'.{x}', 'r+') as f:
             brawlers = f.read().splitlines() 
 
@@ -181,7 +181,7 @@ class ManageDB:
         return HttpResponse(contents, content_type='image/png')
 
     def get_player_tags(self):
-        x = static('country_codes')
+        x = static('misc/country_codes')
         with open(f'.{x}', 'r+') as f:
             country_codes = f.readlines()
             country_codes_list=[]
