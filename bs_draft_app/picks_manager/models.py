@@ -65,6 +65,8 @@ class Brawler(models.Model):
     has_pets = models.CharField(max_length=6, default = "no")
     countered_by_pets = models.CharField(max_length=6, default = "no")
     counters_pets = models.CharField(max_length=6, default = "no")
+    hz_sitter = models.CharField(max_length=6, default="no")
+    gem_carrier = models.CharField(max_length=6, default="no")
     
     def __str__(self):
         return self.brawler_name

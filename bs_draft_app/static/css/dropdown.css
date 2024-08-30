@@ -5,6 +5,7 @@
     height: 10%;
     width: 28%;
     z-index: 10;
+    
   }
 .dropdown:hover {
     cursor: pointer;
@@ -21,10 +22,14 @@
   width: var(--main-width);
   position: relative;
   display:none;
+  padding-left: 10%;
+  padding-bottom: 5%;
 }
 
 .dropdown-col{
   overflow: auto;
+  background-color: rgba(19, 22, 9, 0.5);
+
 }
 
 .dropdown-content-container {

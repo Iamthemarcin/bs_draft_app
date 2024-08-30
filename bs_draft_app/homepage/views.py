@@ -34,10 +34,26 @@ def check_counterability_and_pick_rate(top_brawlers, picked_brawlers = None):
             if easy_to_counter == "Sorta":
                 top_brawler.viability -= 0.5
     return top_brawlers
-
+#func to find out if you already have a viable gem carrier in ur team
+def gem_grab_update_viability(top_brawlers,gem_carriers = 0): 
+    print("hli")
+    for top_brawler in top_brawlers:
+        top_brawler_obj = top_brawler.brawler_name
+        if gem_carriers < 1:
+            if top_brawler_obj.gem_carrier == "Yes":
+                top_brawler.viability += 0.5
+            elif top_brawler_obj.gem_carrier == "Sorta":
+                top_brawler.viability += 0.25
+        elif gem_carriers >= 1:
+            if top_brawler_obj.gem_carrier == "Yes":
+                top_brawler.viability -= 0.5
+            elif top_brawler_obj.gem_carrier == "Sorta":
+                    top_brawler.viability -= 0.25
 
 #function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
+    curr_map = Map.objects.get(map_name = map)
+    curr_map_mode = str(curr_map.mode_name)
 
     if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
         team1 = set()
@@ -108,7 +124,23 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
 
         #synergies. For example if your team has a thrower (artillery) already you never want another thrower.
 
-        #IF SITE EVER BECOMES SLOW THIS CAN BE EASILY IMPROVED.
+        #gem grab stuff. You want to have one real gem carrier or a couple pseudo carriers
+
+        print(curr_map_mode)
+        if curr_map_mode == "Gem Grab":
+            print("hello we have one")
+
+            gem_carriers = 0
+            for brawler_name in players_team:
+                picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
+                print(picked_brawler.gem_carrier)
+                if picked_brawler.gem_carrier == "Yes":
+                    gem_carriers += 1
+                elif picked_brawler.gem_carrier == "Sorta":
+                    gem_carriers += 0.5
+            gem_grab_update_viability(top_brawlers, gem_carriers)
+
+
         for brawler_name in players_team:
             picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
             picked_brawler_class = picked_brawler.brawler_class
@@ -116,14 +148,18 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
             for top_brawler in top_brawlers:
                 top_brawler_class = top_brawler.brawler_name.brawler_class
                 top_brawler_class = BrawlerClass.objects.get(class_name = top_brawler_class)
-
                 if str(picked_brawler_class) == str(top_brawler_class) == 'Artillery':
                     top_brawler.viability -= 99
+
+
+
         top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
 
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
         check_counterability_and_pick_rate(top_brawlers, picked_brawlers)
+        if curr_map_mode == "Gem Grab":
+            gem_grab_update_viability(top_brawlers)
         top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
 
     for top_brawler in top_brawlers:

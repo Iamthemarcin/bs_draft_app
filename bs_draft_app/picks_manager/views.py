@@ -120,12 +120,16 @@ class ManageDB:
                 has_pets = brawler_properties_list[2]
                 countered_by_pets = brawler_properties_list[3]
                 counters_pets = brawler_properties_list[4]
+                hz_sitter = brawler_properties_list[5]
+                gem_carrier = brawler_properties_list[6]
                 db_brawler = Brawler.objects.get(brawler_name = brawler_name)
                 db_brawler.brawler_name = brawler_name
                 db_brawler.easy_to_counter = easy_to_counter
                 db_brawler.has_pets = has_pets
                 db_brawler.countered_by_pets = countered_by_pets
                 db_brawler.counters_pets = counters_pets
+                db_brawler.hz_sitter = hz_sitter
+                db_brawler.gem_carrier = gem_carrier
                 db_brawler.save()
                 HACK_REMOVE = 1
             f.close()
