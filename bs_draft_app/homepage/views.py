@@ -49,6 +49,25 @@ def gem_grab_update_viability(top_brawlers,gem_carriers = 0):
                 top_brawler.viability -= 0.5
             elif top_brawler_obj.gem_carrier == "Sorta":
                     top_brawler.viability -= 0.25
+                    
+#this function and the gem_grab function could be combined into one by just passing the mode name
+#into the function and writing a tuple of variables but this feels nicer to debug
+#hot zone stuff, you want at least one hot zone sitter, two are cool too.
+
+def hot_zone_update_viability(top_brawlers, hz_sitters = 0):
+    for top_brawler in top_brawlers:
+        top_brawler_obj = top_brawler.brawler_name
+        if hz_sitters < 1:
+            if top_brawler_obj.hz_sitter == "Yes":
+                top_brawler.viability += 0.5
+            elif top_brawler_obj.hz_sitter == "Sorta":
+                top_brawler.viability += 0.25
+        elif hz_sitters >= 1:
+            if top_brawler_obj.hz_sitter == "Yes":
+                top_brawler.viability -= 0.5
+            elif top_brawler_obj.hz_sitter == "Sorta":
+                    top_brawler.viability -= 0.25
+    
 
 #function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
@@ -124,12 +143,8 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
 
         #synergies. For example if your team has a thrower (artillery) already you never want another thrower.
 
-        #gem grab stuff. You want to have one real gem carrier or a couple pseudo carriers
-
-        print(curr_map_mode)
+        #gem grab stuff. You want to have one real gem carrier or two pseudo carriers
         if curr_map_mode == "Gem Grab":
-            print("hello we have one")
-
             gem_carriers = 0
             for brawler_name in players_team:
                 picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
@@ -139,7 +154,17 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                 elif picked_brawler.gem_carrier == "Sorta":
                     gem_carriers += 0.5
             gem_grab_update_viability(top_brawlers, gem_carriers)
-
+        
+        #hot zone stuff, you want at least one hot zone sitter, two are cool too.
+        if curr_map_mode == "Hot Zone":
+            hz_sitters = 0
+            for brawler_name in players_team:
+                picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
+                if picked_brawler.hz_sitter == "Yes":
+                    hz_sitters += 1
+                elif picked_brawler.hz_sitter == "Sorta":
+                    hz_sitters += 0.5
+            hot_zone_update_viability(top_brawlers, hz_sitters)
 
         for brawler_name in players_team:
             picked_brawler = Brawler.objects.get(brawler_name = brawler_name)
