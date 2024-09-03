@@ -141,7 +141,9 @@ function reset_picks(){
   $('.pick-box-picked').removeClass('pick-box-picked');
   $('.brawler-picked').css('opacity', 1)
   $('.brawler-picked').removeClass('brawler-picked');
+  $('.rainbow-border').removeClass('rainbow-border')
   pick_number = 1
+
   $('#p1 img').addClass("rainbow-border")
   retrieve_top_picks()
   }

@@ -40,10 +40,10 @@
                 </h3>
                 <div class="dropdown">
                     <div class="dropdown-invis-btn"></div>
-                    <div class="row">
+                    <div class="row dropdown-row">
                         <!-- loop over 0,1,2 -> 3 elements in total -->
                         {% for i in '012'|make_list %}
-                        <div class="col-3 dropdown-col">
+                        <div class="col-4 dropdown-col">
                             {% for j in '012345'|make_list %}
 
                             {% current_map maps i j as map %}

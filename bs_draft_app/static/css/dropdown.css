@@ -1,5 +1,5 @@
 .dropdown {
-  --main-width: 75vw; /* saves the width of the whole container to be used in the dropdown */
+  --main-width: 56vw; /* saves the width of the whole container to be used in the dropdown */
     position: absolute;
     display: block;
     height: 10%;
@@ -18,18 +18,19 @@
   margin-bottom: 5%;
 }
 .dropdown>.row{
-  height: 47vh;   /* 3*10% of draft-container vh */
-  width: var(--main-width);
+  height: 45vh;   /* 3*10% of draft-container vh */
+  width: calc(var(--main-width) + 0.5vw);
   position: relative;
   display:none;
-  padding-left: 10%;
-  padding-bottom: 5%;
+  padding-bottom: 2%;
+  padding-top: 2%;
+  padding-right: 0.5vw;
+  background: rgb(0,0,0);
+  background: linear-gradient(90deg, rgba(0,0,0,0) 3%, rgba(2,0,36,0.31976540616246496) 3%);
 }
 
 .dropdown-col{
   overflow: auto;
-  background-color: rgba(19, 22, 9, 0.5);
-
 }
 
 .dropdown-content-container {
