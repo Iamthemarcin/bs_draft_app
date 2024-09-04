@@ -5,11 +5,12 @@
     height: 10%;
     width: 28%;
     z-index: 10;
-    
   }
+  
 .dropdown:hover {
     cursor: pointer;
 }
+
 .dropdown-invis-btn{
   position: relative;
   height: 100%;
@@ -17,20 +18,24 @@
   color: transparent;
   margin-bottom: 5%;
 }
-.dropdown>.row{
-  height: 45vh;   /* 3*10% of draft-container vh */
-  width: calc(var(--main-width) + 0.5vw);
+
+.dropdown-row{
+  height: 724%;   /* there will be 6 rows so 600% + margin at the top of bottom is another row basically, so 700%, + each of 6 containers has 4% padding, so 724 in total */
+  width: 315%; /* there will be 3 colums, padding right is 15%  */
   position: relative;
   display:none;
   padding-bottom: 2%;
   padding-top: 2%;
-  padding-right: 0.5vw;
+  padding-right: 15%;
   background: rgb(0,0,0);
   background: linear-gradient(90deg, rgba(0,0,0,0) 3%, rgba(2,0,36,0.31976540616246496) 3%);
+  margin: auto;
 }
 
 .dropdown-col{
-  overflow: auto;
+  overflow: visible;
+  margin-left: 0;
+  padding:0;
 }
 
 .dropdown-content-container {
@@ -42,23 +47,24 @@
 /* before block is created to make an illusion of a shadow  */
 .dropdown-content-bg {
   position:absolute;
-  top:-3%;
-  right:-0.5%;
+  top:0%;
+  right:0;
   z-index: 15;
   width:87%;
-  height:106%;
+  height:110%;
   background-color: black;
   clip-path: polygon(2% 0%, 100% 0%, 98% 100%, 0% 100%);
 }
+
 .dropdown-content {
-  top:0;
-  position: absolute;
-  right:0;
+  top:3%;
+  right:1%;
   background-color: rgba(139,160,223,255);
   z-index: 120;
-  width:86%;
+  width:85%; /* same as selected-map */
   height:100%;
   clip-path: polygon(2% 0, 100% 0%, 98% 100%, 0% 100%);
+  position: absolute;
 }
 
 .dropdown-content-display {

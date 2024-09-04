@@ -6,6 +6,7 @@
   }
 
 
+
 body {
     background-color: 7AC4DC;
     min-height: 100vh;
@@ -23,6 +24,12 @@ h4 {
 h5 {
     font-family: 'Poppins';font-size: 0.65vw;
 }
+
+.headline{
+    margin: 0 auto !important;
+    text-align:  left;
+}
+
 .pl-logo{
     max-width: 16vw;
 }
@@ -110,7 +117,7 @@ h5 {
     z-index: 0;
 }
 .selected-map{
-    right:0.25vh;
+    right:1%;
     height: 100%;
     width:85%;
     position:absolute;
@@ -139,13 +146,16 @@ h5 {
 .mode-name{
     position:absolute;
     color: white;
-    font-size: 2.5vh;
-    right:20%;
+    font-size: 1.3vw;
+    right:5%;
     top:0%;
-    transform: translate(15%);
+    height: 100%;
+    width: 100%;
+    text-align: right;
     white-space:nowrap;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 0.3vh 0 #000;
     font-family: "LilitaOne";
+    padding-right: 10%;
 }
 
 .map-name{
@@ -153,9 +163,12 @@ h5 {
     color: #97b0ef;
     font-size: 1.75vh;
     bottom:0;
-    right: 20%;
-    transform:translate(10%);
+    right:5%;
+    width:100%;
+    height: 45%;
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+    text-align: right;
+    padding-right: 10%;
     font-family: "LilitaOne";
     white-space: nowrap;
 }
