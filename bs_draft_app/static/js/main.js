@@ -120,7 +120,7 @@ function choose_brawler(brawler){
   searchbox = document.querySelector("#search")
   searchbox.value = ''
   //i want to focus on the searchbox element so people can type without scrolling to it. Not on mobile tho cuz its annoying
-  if (window.innerWidth > 992){
+  if (window.innerWidth > 1280){
     var cursorFocus = function(elem) {
       var x = window.scrollX, y = window.scrollY;
       elem.focus();

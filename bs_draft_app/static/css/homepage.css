@@ -309,6 +309,7 @@ h5 {
     width:5.5%
     
 }
+
 .right-team{
     justify-content: flex-start;
     padding-left:1.6vw;
@@ -322,6 +323,7 @@ h5 {
 
 .team>.pick-image{
     height:70%;
+    margin-top: 2%;
     padding-left: 1%;
     padding-right:1%;
     position:relative;
@@ -353,11 +355,11 @@ h5 {
 
 .player-name{
     position: absolute;
-    bottom:2.7vh;
+    bottom:3.5%;
     left: 50%;
     transform: translate(-50%);
     color: pink;
-    font-size: 1.6vh;
+    font-size: 0.9vw;
     white-space: nowrap;
     z-index: 2;
 }

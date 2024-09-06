@@ -20,12 +20,17 @@
     }
 }
 
+
+
 @media only screen and (max-width: 1200px){
     .mode-name{
         font-size: 1.8vw;
     }
     .map-name{
         font-size: 1.4vw !important;
+    }
+    .player-name{
+        font-size: 1.3vw;
     }
 }
 
@@ -42,7 +47,15 @@
         font-size: 1.3vw !important; 
         /* needs to have important otherwise the js overrides it back to default and i dont wanna implement screensize code there */
     }
-
+    .rainbow-border{
+        border-width: 2px;
+    }
+    .player-name{
+        font-size:1.1vw;
+    }
+    #dropdown-search{
+        font-size: 0.7em;
+    }
 }
 
 

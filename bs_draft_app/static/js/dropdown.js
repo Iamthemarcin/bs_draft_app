@@ -3,7 +3,11 @@ function disp_dropdown(){
     var dropdown_elements = $('.dropdown>.row, #dropdown-search');
     dropdown_elements.each(function(i,obj){
         obj.classList.toggle('dropdown-content-display')
-        $('#dropdown-search').focus()
+        //on pcs u want the focus to go on the searchbox, on phone its easier to just choose
+        var w = window.innerWidth;
+        if (w > 1280){
+            $('#dropdown-search').focus()
+        }
         searchInput = $('#dropdown-search').val()
         if (searchInput == ''){
             $('br').removeClass('hide')
