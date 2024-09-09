@@ -46,11 +46,12 @@
                         <!-- loop over 0,1,2 -> 3 elements in total -->
                         {% for i in '012'|make_list %}
                         <div class="col-4 dropdown-col">
-                            {% for j in '012345'|make_list %}
+                            {% for j in columns %}
 
-                            {% current_map maps i j as map %}
+                            {% current_map maps i j as map %}  <!-- custom template tag. can find what it does exactly on lib/templatetags. just gets the current map -->
 
-                            {% if forloop.counter0 == 3 %}
+
+                            {% if forloop.counter0 == maps_per_column %}
                             <br>
                             {% endif %}
                             <div class="dropdown-content-container">

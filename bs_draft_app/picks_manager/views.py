@@ -306,10 +306,11 @@ class ManageDB:
                             db_map = Map.objects.get(map_name = map, mode_name= mode) 
                             db_map.games_played += 1
                             db_map.save()
-                        #if map doesnt exist and there are less than 18 maps in db, create it, if it does add a game played to the map
+                        #if map doesnt exist and there are less than the ammount of seasonal maps in db, create it, if it does add a game played to the map
                         except Map.DoesNotExist:
                             map_list = list(Map.objects.all().order_by('games_played'))
-                            if len(map_list) < 18:
+                            ammount_of_maps = ScannedData.objects.first().ammount_of_maps
+                            if len(map_list) < ammount_of_maps:
                                 db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
                                 db_map.save()
                             else:
@@ -335,7 +336,6 @@ class ManageDB:
         player_num_object = ScannedData.objects.first()
         try:
             player_num = player_num_object.last_player_checked
-            scanned_games = player_num_object.scanned_games
         except AttributeError:
             player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0)
             player_num = 0
@@ -346,9 +346,10 @@ class ManageDB:
             player_num = 0       
         
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
-        player_num_object.delete()
-        s = ScannedData(last_player_checked = player_num + ammount_of_battlelogs, scanned_games = scanned_games)
-        s.save()
+        player_num_object.last_player_checked = player_num + ammount_of_battlelogs
+        player_num_object.save()
+        ScannedData.objects.first().delete() #im manipulating the pk here which i shouldnt do but whatever. just delete the old object
+
         #retrieve last games from players
         for player in players:
             player_tag = player.player_tag

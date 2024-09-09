@@ -7,6 +7,7 @@ from picks_manager.views import ManageDB
 def update_brawlers():
     Manager = ManageDB()
     Manager.update_brawler_list()
+    Manager.update_brawler_pics()
 
 class Command(BaseCommand):
     help = 'Updates the database with new games from brawl API'

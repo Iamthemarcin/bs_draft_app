@@ -206,13 +206,18 @@ def index(request):
     #choose a random map and mode
     all_maps = Map.objects.all().order_by('mode_name')
     maps = list(all_maps)
+    maps_per_column = len(maps)/6
+    columns = [i for i in range(int(len(maps)/3))]
+    print(columns)
     chosen_map_obj = random.choice(maps)
     chosen_mode = chosen_map_obj.mode_name
     chosen_map = chosen_map_obj
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
     #choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
     top_brawlers = get_top_brawlers(chosen_map,16)
-    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers }
+    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 
+               'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers, 'maps_per_column': maps_per_column,
+                'columns': columns }
     return render(request, "homepage.html", context)
 
 def map_change(request):

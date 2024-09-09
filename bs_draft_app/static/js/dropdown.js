@@ -1,5 +1,14 @@
 
 function disp_dropdown(){
+    
+    ammount_of_containers = $('.dropdown-content-container').length
+    //depending on if there is 24 or 18 maps in the ranked season the width and height of container is bit diff
+    if (ammount_of_containers = 24){
+        row = $('.dropdown-row')
+        row.css('height','924%')
+        $('.dropdown-content-container').css('height', '10.5%')
+        }
+
     var dropdown_elements = $('.dropdown>.row, #dropdown-search');
     dropdown_elements.each(function(i,obj){
         obj.classList.toggle('dropdown-content-display')
@@ -14,7 +23,12 @@ function disp_dropdown(){
             $('.dropdown-col').removeClass('hide')
             $('.dropdown-content-container').removeClass('hide')
         }
+
     })
+
+    
+
+
 }
 $('.dropdown-invis-btn').click(disp_dropdown)
 

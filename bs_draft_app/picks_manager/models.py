@@ -104,5 +104,6 @@ class Player(models.Model):
 class ScannedData(models.Model):
     last_player_checked = models.IntegerField(primary_key= True, default = 0)
     scanned_games = models.IntegerField(default = 0)
+    ammount_of_maps = models.IntegerField(default = 18)
     class Meta:
         verbose_name_plural = "ScannedData"

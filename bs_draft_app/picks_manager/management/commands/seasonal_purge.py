@@ -5,10 +5,18 @@ from picks_manager.models import WinRate, Map, ScannedData
 
 
 def seasonal_purge():
+    ammount_of_maps = input("How many maps are there in new season? ") 
+    while True:
+        try: 
+            int(ammount_of_maps) 
+            break
+        except: ammount_of_maps = input("Please specify a number, ususally 18 or 24.")
+    
     WinRate.objects.all().delete()
     Map.objects.all().delete()
-    ScannedData.all().delete()
-
+    ScannedData.objects.all().delete()
+    new_season_data = ScannedData(last_player_checked = 0, scanned_games = 0, ammount_of_maps = ammount_of_maps)
+    new_season_data.save()
     
 class Command(BaseCommand):
     help = 'Purges the database of all the game records from current season.'
