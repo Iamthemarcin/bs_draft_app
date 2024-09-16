@@ -40,15 +40,30 @@ services:
       - POSTGRES_PASSWORD=${DB_PASS}
 
   proxy:
+    container_name: proxy
     build:
       context: ./proxy
+      args:
+        ENV: ${ENV}  #these are needed during buildingz
+        
     restart: always
     depends_on:
       - django
+      - certbot
+    env_file:
+      - ./.env
     ports:
       - 80:8000
+      - 443:443
     volumes:
       - static-data:/vol/static
+      - ./data/letsencrypt:/etc/letsencrypt  # SSL certificates
+  certbot:
+    image: certbot/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
+    volumes:
+      - ./data/letsencrypt:/etc/letsencrypt  # SSL certificates
+      - ./data/letsencrypt-data:/var/www/certbot  # For challenge files
 
 volumes:
   postgres-data:
