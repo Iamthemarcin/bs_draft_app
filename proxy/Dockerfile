@@ -14,7 +14,7 @@ RUN mkdir -p /vol/static && \
     touch /etc/nginx/conf.d/default.conf && \
     chown nginx:nginx /etc/nginx/conf.d/default.conf && \
     chmod +x /run.sh && \
-    chown -R www-data:www-data /etc/nginx/ssl/letsencrypt/ && \
+    chown -R nginx:nginx /etc/nginx/ssl/letsencrypt/ && \
     chmod 600 /etc/nginx/ssl/letsencrypt/fullchain.pem && \
     chmod 600 /etc/nginx/ssl/letsencrypt/privkey.pem
 

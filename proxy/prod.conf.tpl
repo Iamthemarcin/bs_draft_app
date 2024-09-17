@@ -1,25 +1,22 @@
 server {
-    listen ${LISTEN_PORT};
+    listen 80;
+    listen [::]:80;
     server_name ${SERVER_NAME};
-
-    # HTTP --> HTTPS
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name ${SERVER_NAME};
-
-    ssl_certificate /etc/nginx/ssl/letsencrypt/fullchain.pem;
-    ssl_certificate_key /etc/nginx/ssl/letsencrypt/privkey.pem;
+    server_tokens off;
 
     location /static {
         alias /vol/static/static;
+    }
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
     }
 
     location / {
         uwsgi_pass              ${APP_HOST}:${APP_PORT};
         include                 /etc/nginx/uwsgi_params;
         client_max_body_size    10M;
+        return 301 https://brawldraft.xyz$request_uri;
+
     }
 }

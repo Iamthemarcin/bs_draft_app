@@ -53,7 +53,7 @@ services:
     env_file:
       - ./.env
     ports:
-      - 80:8000
+      - 80:80
       - 443:443
     volumes:
       - static-data:/vol/static
@@ -62,8 +62,8 @@ services:
     image: certbot/certbot
     entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
     volumes:
-      - ./data/letsencrypt:/etc/letsencrypt  # SSL certificates
-      - ./data/letsencrypt-data:/var/www/certbot  # For challenge files
+      - ./certbot/www/:/var/www/certbot/:rw
+
 
 volumes:
   postgres-data:
