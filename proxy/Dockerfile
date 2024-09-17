@@ -13,10 +13,7 @@ RUN mkdir -p /vol/static && \
     chmod 755 /vol/static && \
     touch /etc/nginx/conf.d/default.conf && \
     chown nginx:nginx /etc/nginx/conf.d/default.conf && \
-    chmod +x /run.sh && \
-    chown -R nginx:nginx /etc/nginx/ssl/letsencrypt/ && \
-    chmod 600 /etc/nginx/ssl/letsencrypt/fullchain.pem && \
-    chmod 600 /etc/nginx/ssl/letsencrypt/privkey.pem
+    chmod +x /run.sh
 
 VOLUME /vol/static
 

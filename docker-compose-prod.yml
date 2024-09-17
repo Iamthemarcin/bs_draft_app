@@ -30,6 +30,7 @@ services:
     command: crond -f -l 2  # Keeps the container running
 
   db:
+    container_name: postgres    
     image: postgres:15.7-alpine
     restart: always
     volumes:
@@ -44,8 +45,7 @@ services:
     build:
       context: ./proxy
       args:
-        ENV: ${ENV}  #these are needed during buildingz
-        
+        ENV: ${ENV}  #these are needed during buildingz        
     restart: always
     depends_on:
       - django
@@ -57,13 +57,15 @@ services:
       - 443:443
     volumes:
       - static-data:/vol/static
-      - ./data/letsencrypt:/etc/letsencrypt  # SSL certificates
+      - ./certbot/www:/var/www/certbot/
+
+
   certbot:
+    container_name: certbot
     image: certbot/certbot
     entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
     volumes:
-      - ./certbot/www/:/var/www/certbot/:rw
-
+      - ./certbot/www/:/var/www/certbot/
 
 volumes:
   postgres-data:
