@@ -44,9 +44,7 @@ services:
   proxy:
     container_name: proxy
     build:
-      context: ./docker/proxy
-      args:
-        ENV: ${ENV}  #these are needed during buildingz        
+      context: ./docker/proxy  
     restart: always
     depends_on:
       - django
@@ -57,6 +55,7 @@ services:
       - certbot-web:/vol/www
       - proxy-dhparams:/vol/proxy
       - certbot-certs:/etc/letsencrypt
+      - static-data: /vol/static
     environment:
       - DOMAIN=${DOMAIN}
 
@@ -70,6 +69,7 @@ services:
     volumes:
       - certbot-web:/vol/www
       - certbot-certs:/etc/letsencrypt/
+      - static-data: /vol/static
     depends_on:
       - proxy
 
@@ -77,3 +77,5 @@ volumes:
   certbot-web:
   proxy-dhparams:
   certbot-certs:
+  static-data:
+  postgres-data:
