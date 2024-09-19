@@ -3,6 +3,7 @@ server {
     listen [::]:80;
     server_name ${SERVER_NAME};
     server_tokens off;
+    error_log  /var/log/nginx/error.log warn;
 
     location /static {
         alias /vol/static/static;
