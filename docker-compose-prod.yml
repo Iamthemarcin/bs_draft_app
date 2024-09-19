@@ -11,6 +11,7 @@ services:
       - ./.env
     environment:
       - DJANGO=true
+      - DJANGO_ALLOWED_HOSTS = ${DOMAIN}
     depends_on:
       - db
 
@@ -43,30 +44,36 @@ services:
   proxy:
     container_name: proxy
     build:
-      context: ./proxy
+      context: ./docker/proxy
       args:
         ENV: ${ENV}  #these are needed during buildingz        
     restart: always
     depends_on:
       - django
-      - certbot
-    env_file:
-      - ./.env
     ports:
       - 80:80
       - 443:443
     volumes:
-      - static-data:/vol/static
-      - ./certbot/www:/var/www/certbot/
-
+      - certbot-web:/vol/www
+      - proxy-dhparams:/vol/proxy
+      - certbot-certs:/etc/letsencrypt
+    environment:
+      - DOMAIN=${DOMAIN}
 
   certbot:
-    container_name: certbot
-    image: certbot/certbot
-    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'
+    build:
+      context: ./docker/certbot
+    command: echo "Skipping..."
+    environment:
+      - EMAIL=${ACME_DEFAULT_EMAIL}
+      - DOMAIN=${DOMAIN}
     volumes:
-      - ./certbot/www/:/var/www/certbot/
+      - certbot-web:/vol/www
+      - certbot-certs:/etc/letsencrypt/
+    depends_on:
+      - proxy
 
 volumes:
-  postgres-data:
-  static-data:
+  certbot-web:
+  proxy-dhparams:
+  certbot-certs:
