@@ -27,8 +27,8 @@ SECRET_KEY = os.environ.get("SECRET_KEY", 'setmepls')
 DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
-
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(" ")
+print(ALLOWED_HOSTS)
 # Application definition
 
 INSTALLED_APPS = [
