@@ -1,4 +1,4 @@
-FROM nginx:1.27.1-alpine-slim
+FROM nginx:1.27.1-alpine
 
 COPY ./nginx/* /etc/nginx/
 COPY ./run.sh /run.sh

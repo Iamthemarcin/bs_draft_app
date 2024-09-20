@@ -55,10 +55,9 @@ services:
       - certbot-web:/vol/www
       - proxy-dhparams:/vol/proxy
       - certbot-certs:/etc/letsencrypt
-      - static-data: /vol/static
+      - static-data:/vol/static
     environment:
       - DOMAIN=${DOMAIN}
-
   certbot:
     build:
       context: ./docker/certbot
@@ -69,7 +68,7 @@ services:
     volumes:
       - certbot-web:/vol/www
       - certbot-certs:/etc/letsencrypt/
-      - static-data: /vol/static
+      - static-data:/vol/static
     depends_on:
       - proxy
 

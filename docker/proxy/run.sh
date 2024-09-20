@@ -1,6 +1,8 @@
 #!/bin/bash
 
 set -e
+export PYTHONUNBUFFERED=1
+
 
 echo "Checking for dhparams.pem"
 if [ ! -f "/vol/proxy/ssl-dhparams.pem" ]; then
