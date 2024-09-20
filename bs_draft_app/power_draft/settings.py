@@ -28,7 +28,8 @@ DEBUG = bool(os.environ.get("DEBUG", default=0))
 
 
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(" ")
-print(ALLOWED_HOSTS)
+
+CSRF_TRUSTED_ORIGINS=['https://*.brawldraft.xyz']
 # Application definition
 
 INSTALLED_APPS = [
