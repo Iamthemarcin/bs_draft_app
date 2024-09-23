@@ -15,6 +15,7 @@ certbot certonly \
     --webroot \
     --webroot-path "/vol/www/" \
     -d "$DOMAIN" \
+    -d "www.$DOMAIN" \
     --email $EMAIL \
     --rsa-key-size 4096 \
     --agree-tos \
