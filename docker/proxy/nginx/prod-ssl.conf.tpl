@@ -1,6 +1,6 @@
 server {
     listen 80;
-    server_name ${DOMAIN} www.${DOMAIN};
+    server_name ${DOMAIN};
 
     location /.well-known/acme-challenge/ {
         root /vol/www/;
@@ -9,6 +9,12 @@ server {
     location / {
         return 301 https://$host$request_uri;
     }
+}
+
+
+server {
+    server_name www.${DOMAIN};
+    return 301 $scheme://${DOMAIN}$request_uri;
 }
 
 server {
@@ -33,9 +39,4 @@ server {
         include              /etc/nginx/uwsgi_params;
         client_max_body_size 10M;
     }
-}
-
-server {
-    server_name www.${DOMAIN};
-    return 301 $scheme://${DOMAIN}$request_uri;
 }
