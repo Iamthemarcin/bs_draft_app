@@ -1,7 +1,7 @@
 $(document).ready(()=>{
   brawler_search()
   change_font_size()
-  $(document).keypress(function (event) {
+  $(document).keydown(function (event) {
     let key = event.key
     if (key == "r" && event.target.tagName == 'BODY'){
       reset_picks()
@@ -10,8 +10,17 @@ $(document).ready(()=>{
       first_brawler = $('.brawler-img:not(.hide)')[0]
       choose_brawler(first_brawler)
     }
-    if (key == "Escape"){
-      $("#search").blur(); 
+    // on escape hide dropdown if visible, remove all things from the searchbox and show all brawlers again
+    if (key == "Escape"){ 
+      $("#search").blur();
+      $("#search").val("")
+      $(".brawler-img").removeClass("hide")
+
+      var dropdown = $('.dropdown>.row');
+      
+      if ($(dropdown).hasClass( "dropdown-content-display" )){
+        disp_dropdown()
+      }
     }
   });
 });
@@ -196,3 +205,44 @@ function retrieve_top_picks(){
         }
     })
   }
+
+
+// func to display manual. It shows the first manual, then on body click hides the prev manual and shows the next one. On last step it just hides the manual.
+var manual_stage = 0
+body_listener_enabled = false//during function execution, every body press will go to the next stage. when func isnt executing, body behaves normally
+
+function switch_manuals(){
+  if (body_listener_enabled == false){
+    return
+  }
+  if (manual_stage < (manuals.length - 1)){
+    $(`.${manuals[manual_stage]}`).toggle()
+    $(`.${manuals[manual_stage + 1]}`).toggle()
+    manual_stage += 1
+  }
+  else if (manual_stage == (manuals.length-1)){
+    $(`.${manuals[manual_stage]}`).toggle()
+    body_listener_enabled = false;
+    manual_stage = 0
+    return;
+  }
+}
+
+$(".manual").on("click", function(e){
+  e.stopPropagation(); //dont wanna trigger the body click right away, it messes my brain up
+  $("body").off("click"); //if I already pressed the manual before, I would add another body listener rn, causing it to listen for clicks twice.
+  manuals = ["map-manual", "search-manual", "top-picks-manual", "reset-manual"]
+  body_listener_enabled = true; //I want to start listening to all clicks and switch the manuals only. All other actions disabled by handler below
+  $(`.${manuals[manual_stage]}`).toggle()
+  })
+
+// when executing the manual event chain, I don't want anything else to be clickable.
+document.addEventListener("click", handler, true);
+function handler(e) {
+  if (body_listener_enabled == true){
+    switch_manuals()
+    e.stopPropagation();
+    e.preventDefault();
+  }
+}
+

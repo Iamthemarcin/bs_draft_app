@@ -11,7 +11,12 @@ if [ ! -f "/vol/proxy/ssl-dhparams.pem" ]; then
 fi
 
 echo "Checking for fullchain.pem"
-if [ ! -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
+
+if [ "$DOMAIN" = "localhost" ]; then
+  echo "Starting the proxy on localhost..."
+  envsubst < /etc/nginx/default.conf.tpl > /etc/nginx/conf.d/default.conf
+
+elif [ ! -f "/etc/letsencrypt/live/${DOMAIN}/fullchain.pem" ]; then
   echo "No SSL cert, enabling HTTP only..."
   envsubst < /etc/nginx/prod.conf.tpl > /etc/nginx/conf.d/default.conf
 else

@@ -32,6 +32,12 @@
     .player-name{
         font-size: 1.3vw;
     }
+    .tutorial-text{
+        font-size: 1.7vw;
+    }
+    .manual-text{
+        font-size: 1.5vw
+    }
 }
 
 
@@ -56,6 +62,9 @@
     #dropdown-search{
         font-size: 0.7em;
     }
+    .tutorial-text{
+        font-size: 1.6vw;
+    }
 }
 
 
@@ -70,6 +79,12 @@
     .map-name{
         font-size: 1.2vw !important;
         /* needs to have important otherwise the js overrides it back to default and i dont wanna implement screensize code there */
+    }
+    .tutorial-text{
+        font-size: 1.7vw;
+    }
+    .manual-text{
+        font-size: 1.25vw
     }
 
 }

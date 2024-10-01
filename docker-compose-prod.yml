@@ -11,7 +11,7 @@ services:
       - ./.env
     environment:
       - DJANGO=true
-      - ALLOWED_HOSTS=${DOMAIN}
+      - ALLOWED_HOSTS=${DOMAIN} www.${DOMAIN}
     depends_on:
       - db
 

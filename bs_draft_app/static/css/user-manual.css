@@ -1,0 +1,102 @@
+.manual{
+    display: flex;
+    align-items: center;
+    position: absolute;
+    top:2%;
+    left:1%;
+    width: 20%;
+    color:white;
+    font-family: "LilitaOne";
+    font-size: 1vw;
+    height: auto;
+}
+
+.manual:hover{
+    cursor: pointer;
+}
+
+.manual > p {
+    margin-bottom:-2%; 
+    margin-left:1%;
+}
+
+.manual-icon{
+    width: 10%;
+    align-self: end;
+    margin-right: 4px;
+}
+
+.map-manual{
+    position: absolute;
+    top:20%;
+    left:75%;
+    width: 150%;
+    height: 600%;
+}
+
+.map-selection-chatbox{
+    position: absolute;
+    top: 0;
+    transform: scaleY(-1);
+    width: 100%;
+    height: 100%;
+}
+
+.manual-text{
+    position: absolute;
+    top: 40%;
+    left:10%;
+    width: 81%;
+    font-family: "LilitaOne";
+    font-size: 1vw;
+}
+
+.search-manual{
+    position: absolute;
+    top:30%;
+    left:145%;
+    width: 150%;
+    height: 600%;
+}
+
+.search-manual-chatbox{
+    position: absolute;
+    top: 0;
+    transform: rotate(180deg);
+    width: 100%;
+    height: 100%;
+}
+
+.top-picks-manual{
+    position: absolute;
+    top:100%;
+    left:117%;
+    width: 150%;
+    height: 600%;
+}
+
+.top-picks-manual-chatbox{
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+        
+.top-picks-manual > .manual-text{
+    top:25%; 
+}
+
+.reset-manual{
+    position: absolute;
+    top:-150%;
+    left:220%;
+    width: 150%;
+    height: 600%;
+}
+
+.reset-manual-chatbox{
+    position: absolute;
+    top: 0;
+    transform: rotate(180deg);
+    width: 100%;
+    height: 100%;
+}
