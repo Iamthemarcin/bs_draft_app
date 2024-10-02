@@ -78,9 +78,13 @@ class WinRateQuerySet(models.QuerySet):
     def calc_viability(self):
         ayaya = self.annotate(viability = ExpressionWrapper(F('games_won')*Decimal('1.75')/(F('games_played')) + F('use_rate'),output_field = FloatField())).filter(games_won__gt = 10) ##if less than 10 games i dont care bout u sorry mr object.
         return ayaya
+
+    
 class WinRate(models.Model):
     class Meta:
         unique_together = (('brawler_name', 'map_name'),)
+        ordering = ['brawler_name__brawler_name']  
+
     id = models.AutoField(primary_key=True)
     brawler_name = models.ForeignKey(Brawler, on_delete = models.CASCADE)
     map_name = models.ForeignKey(Map, on_delete = models.CASCADE)
@@ -90,7 +94,7 @@ class WinRate(models.Model):
     objects = WinRateQuerySet.as_manager()
     def __str__(self):
         return self.map_name.map_name + ', ' + self.brawler_name.brawler_name
-
+    
 class WinRateSerializer(serializers.Serializer):
     brawler_name = serializers.CharField(max_length = 30)
     use_rate = serializers.FloatField()
