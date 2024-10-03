@@ -24,6 +24,7 @@ $(document).ready(()=>{
     }
   });
 });
+$(window).on('load', function(){season_alert()});
 
 function scroll_me_daddy(){
   var scrollable_container = document.getElementsByClassName('brawlers-box')[0];
@@ -246,3 +247,7 @@ function handler(e) {
   }
 }
 
+
+function season_alert(){
+  alert("The game is currently inbetween ranked seasons. Showing mock data until 05.10.2024")
+}
