@@ -248,6 +248,6 @@ function handler(e) {
 }
 
 
-function season_alert(){
-  alert("The game is currently inbetween ranked seasons. Showing mock data until 05.10.2024")
-}
+// function season_alert(){
+//   alert("The game is currently inbetween ranked seasons. Showing mock data until 05.10.2024")
+// }
