@@ -19,7 +19,7 @@ from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerCla
 1. get_player_tags
 1. update_brawler_list
 1. update_brawler_pics
-1. update map list and win rates<-- this also gets winrates, repeat a couple of thousand times (set ammount_of_battlelogs).
+1. update map list and win rates<--  repeat a couple of thousand times (set ammount_of_battlelogs).
 2. update modes <- do this when icon missing
 2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterf already
 """
@@ -60,8 +60,7 @@ class ManageDB:
             for i in data:
                 self.search_response(i, search_word, chosen_mode, results, return_parent)
 
-    @staticmethod
-    def update_brawler_classes():      
+    def update_brawler_classes(self):      
         class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery':'Assassin', 'Controller':'Artillery', 'Marksman':'Assassin', 'Damage Dealer':'Marksman', 'Support':['Tank', 'Assassin'], 'Tank':['Damage Dealer', 'Controller']}
         
         for b_class,counters in class_counters.items():
@@ -86,7 +85,11 @@ class ManageDB:
                         brawler_class.countered_by += counters                
                         brawler_class.save()
         #crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
-        crow = Brawler.objects.get(brawler_name = "Crow")
+        try: 
+            crow = Brawler.objects.get(brawler_name = "Crow")
+        except Brawler.DoesNotExist:
+            self.update_brawler_list()
+            crow = Brawler.objects.get(brawler_name = "Crow")
         support_class = BrawlerClass.objects.get(class_name = "Support")
         print(support_class.class_name)
         crow.brawler_class = support_class
@@ -131,7 +134,6 @@ class ManageDB:
                 db_brawler.hz_sitter = hz_sitter
                 db_brawler.gem_carrier = gem_carrier
                 db_brawler.save()
-                HACK_REMOVE = 1
             f.close()
 
 
@@ -256,85 +258,93 @@ class ManageDB:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
 
+    def look_for_ranked_games(self, game_data, player, debug = False): #helper function, used in updating the winrate. 
+
+        player_tag = player.player_tag
+        if not 'items' in game_data:
+            print("No games retrieved" + str(game_data))
+            return 
+        #check if the last game was played within last x days.
+        last_game = len(game_data['items'])-1
+        date = game_data['items'][last_game]['battleTime']
+        year = int(date[:4])
+        month = int(date[4:6])
+        day = int(date[6:8])
+        game_time = datetime.date(year = year,month = month,day = day)
+        time_delta = game_time - player.last_checked
+        if time_delta.days < 1 and not debug: #for debug stuff i want to check the game anyways
+            return
+
+        for battles in game_data['items']:         
+            if battles['battle']:
+                try:
+                    battle_type = battles['battle']['type']  
+                except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
+                    continue
+                if battle_type == 'soloRanked' or battle_type == 'teamRanked' or battle_type == "ranked":  #i've seen all of these somehow
+                    self.i += 1
+                    if self.i % 50 == 0:
+                        print(str(self.i) + " ranked games have been checked")
+                    ranked_game_map = str(battles['event']['map'])
+                    ranked_game_mode = str(battles['battle']['mode'])
+
+                    #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api) 
+                    # so gotta make another call (the update_modes function).
+                    #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times to update winrate.
+
+                    mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
+                    mode = self.camel_case_to_normal(mode)
+                    try: 
+                        db_mode = Mode.objects.get(mode_name = mode)
+                    except Mode.DoesNotExist:
+                        db_mode = Mode(mode_name = mode)
+                        db_mode.save()
+
+                    map = ranked_game_map.replace("'","\"").replace("\"s", "'s")
+                    try:
+                        db_map = Map.objects.get(map_name = map, mode_name= mode) 
+                        db_map.games_played += 1
+                        db_map.save()
+                    #if map doesnt exist and there are less than the ammount of seasonal maps in db, create it, if it does add a game played to the map
+                    except Map.DoesNotExist:
+                        map_list = list(Map.objects.all().order_by('games_played'))
+
+                        try:
+                            ammount_of_maps = ScannedData.objects.first().ammount_of_maps
+                        except AttributeError:
+                            print("You need to set the ammount of maps for this season in ScannedData object. For now defaulting to 24")
+                            ammount_of_maps = 24
+
+                        if len(map_list) < ammount_of_maps:
+                            db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
+                            db_map.save()
+                        else:
+                            continue
+                    #this part is for wr calcualting, wasnt planning on it being here but here we are
+                    result = battles['battle']['result']
+                    teams = battles['battle']['teams']
+                    self.update_win_rate(player_tag, result, teams, db_map)    
+                    return 
+                
+    def camel_case_to_normal(self, s):  
+        words = []
+        start = 0
+        for i, c in enumerate(s[1:], start = 1):
+            if c.isupper():
+                words.append(s[start:i].capitalize())
+                start = i
+        words.append(s[start:].capitalize())
+        result = ' '.join(words)
+        return result
+
     def update_map_list_and_winrate(self, ammount_of_battlelogs): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
-        def look_for_ranked_games(game_data, player):
 
-            player_tag = player.player_tag
-            if not 'items' in game_data:
-                print("No games retrieved" + str(game_data))
-                return 
-            #check if the last game was played within last x days.
-            last_game = len(game_data['items'])-1
-            date = game_data['items'][last_game]['battleTime']
-            year = int(date[:4])
-            month = int(date[4:6])
-            day = int(date[6:8])
-            game_time = datetime.date(year = year,month = month,day = day)
-            time_delta = player.last_checked - game_time
-            if time_delta.days < 1:
-                return
-
-            for battles in game_data['items']:         
-                if battles['battle']:
-                    try:
-                        battle_type = battles['battle']['type']  
-                    except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
-                        continue
-                    if battle_type == 'soloRanked' or battle_type == 'teamRanked':
-                        self.i += 1
-                        if self.i % 50 == 0:
-                            print(str(self.i) + " ranked games have been checked")
-                        ranked_game_map = str(battles['event']['map'])
-                        ranked_game_mode = str(battles['battle']['mode'])
-
-                        #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api) 
-                        # so gotta make another call (the update_modes function).
-                        #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times to update winrate.
-
-                        mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
-                        mode = camel_case_to_normal(mode)
-                        try: 
-                            db_mode = Mode.objects.get(mode_name = mode)
-                        except Mode.DoesNotExist:
-                            db_mode = Mode(mode_name = mode)
-                            db_mode.save()
-
-                        map = ranked_game_map.replace("'","\"").replace("\"s", "'s")
-                        try:
-                            db_map = Map.objects.get(map_name = map, mode_name= mode) 
-                            db_map.games_played += 1
-                            db_map.save()
-                        #if map doesnt exist and there are less than the ammount of seasonal maps in db, create it, if it does add a game played to the map
-                        except Map.DoesNotExist:
-                            map_list = list(Map.objects.all().order_by('games_played'))
-                            ammount_of_maps = ScannedData.objects.first().ammount_of_maps
-                            if len(map_list) < ammount_of_maps:
-                                db_map = Map(map_name = map, mode_name= db_mode, games_played = 1)
-                                db_map.save()
-                            else:
-                                continue
-                        #this part is for wr calcualting, wasnt planning on it being here but here we are
-                        result = battles['battle']['result']
-                        teams = battles['battle']['teams']
-                        self.update_win_rate(player_tag, result, teams, db_map)    
-                        return 
-            
-        def camel_case_to_normal(s):  ##TODO MAYBE move this somewhere else
-            words = []
-            start = 0
-            for i, c in enumerate(s[1:], start = 1):
-                if c.isupper():
-                    words.append(s[start:i].capitalize())
-                    start = i
-            words.append(s[start:].capitalize())
-            result = ' '.join(words)
-            return result
         
         #I only want to send ammount_of_battlelogs requests per map update call
-        player_num_object = ScannedData.objects.first()
         try:
+            player_num_object = ScannedData.objects.first()
             player_num = player_num_object.last_player_checked
         except AttributeError:
             player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0)
@@ -367,7 +377,7 @@ class ManageDB:
 
 
             all_games = all_games.json()
-            look_for_ranked_games(all_games, player)        
+            self.look_for_ranked_games(all_games, player)        
         return self.i
     
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess

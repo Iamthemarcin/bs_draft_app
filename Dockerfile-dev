@@ -11,6 +11,7 @@ COPY ./bs_draft_app .
 COPY ./scripts /scripts/
 
 EXPOSE 8000
+EXPOSE 5678  
 
 
 RUN chmod 755 /scripts/update_db.sh
@@ -21,6 +22,7 @@ RUN apk add --no-cache --virtual .build-deps \
     libffi-dev jpeg-dev zlib-dev 
 #reqs
 RUN pip install -r requirements.txt 
+RUN pip install debugpy
 
 # Wizardry script from some article made by a saint who knows alpine commands. Saves like 100mb space!!!
 

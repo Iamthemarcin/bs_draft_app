@@ -1,0 +1,5 @@
+{
+    "python.defaultInterpreterPath": "/usr/local/bin/python",
+    "python.pythonPath": "/usr/local/bin/python3",
+    "terminal.integrated.defaultProfile.linux": "sh"
+  }
