@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo "Entrypoint is being read correctly"
+
 if [ "$DATABASE" = "postgres" ]
 then
     echo "Waiting for postgres..."

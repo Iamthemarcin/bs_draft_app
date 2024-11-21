@@ -10,12 +10,18 @@ def main():
     """Run administrative tasks."""
     #if you start the django with the docker compose up -f "docker-compose-debug.yml" command you'll have a debugger.
     #it slows down restarting a bit tho so only use in bigboi bugs
-    if os.getenv('DEBUGPY_DJANGO') == 'true':
-        if os.environ.get('RUN_MAIN') or os.environ.get('WERKZEUG_RUN_MAIN'):
-            import debugpy
-            debugpy.listen(("0.0.0.0", 3000))
-            debugpy.wait_for_client()
-            print('Attached!')
+
+    if os.getenv("DEBUGPY_DJANGO") == "True":
+        
+        if not debugpy.is_client_connected():
+            try:
+                debugpy.listen(("0.0.0.0", 5678))
+                print("Waiting for debugger to attach...")
+                debugpy.wait_for_client()
+            except RuntimeError:
+                pass
+
+
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'power_draft.settings')
     try:

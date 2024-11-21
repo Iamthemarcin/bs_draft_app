@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.management import call_command
 from django.db.models import F, ExpressionWrapper, FloatField
 from decimal import Decimal
 from rest_framework import serializers  # type: ignore
@@ -17,7 +18,8 @@ class Mode(models.Model):
     mode_color = models.CharField(max_length = 30)
     def __str__(self):
         return self.mode_name
-
+    class Meta:
+        app_label = 'picks_manager'    
 
 class Map(models.Model):
     map_name = models.CharField(max_length = 30)
@@ -41,6 +43,25 @@ class BrawlerClass(models.Model):
         return self.class_name
     class Meta:
         verbose_name_plural = "Brawler classes"
+
+class BrawlerManager(models.Manager):
+    def get_or_update(self, brawler_name):
+        try:
+            return self.get(brawler_name__iexact=brawler_name)
+        except Brawler.DoesNotExist:
+            print(f"{brawler_name} isn't in the database. Updating database with update_brawlers command.")
+            try:
+                call_command('update_brawlers')  # Executes update_brawlers.py management command
+            except Exception as e:
+                print(f"Failed to run update_brawlers command: {e}")
+                return None
+            # Try fetching the brawler again after the update
+            try:
+                return Brawler.objects.get(brawler_name__iexact=brawler_name)
+            except Brawler.DoesNotExist:
+                print(f"{brawler_name} still not found after update.")
+                return None
+            
 
 class Brawler(models.Model):
 
@@ -67,9 +88,13 @@ class Brawler(models.Model):
     counters_pets = models.CharField(max_length=6, default = "no")
     hz_sitter = models.CharField(max_length=6, default="no")
     gem_carrier = models.CharField(max_length=6, default="no")
-    
+    objects = BrawlerManager()
+
     def __str__(self):
         return self.brawler_name
+
+
+
 
 
 class WinRateQuerySet(models.QuerySet):
@@ -111,3 +136,36 @@ class ScannedData(models.Model):
     ammount_of_maps = models.IntegerField(default = 18)
     class Meta:
         verbose_name_plural = "ScannedData"
+
+class HeadToHead(models.Model):
+
+    brawler_a = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="head_to_head_a")
+    brawler_b = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="head_to_head_b")
+    
+    map = models.ForeignKey(Map, on_delete= models.CASCADE)  
+    matches_played = models.PositiveIntegerField(default=0)
+    matches_won_by_a = models.PositiveIntegerField(default=0)
+    win_rate_a = models.FloatField(default=0.0) 
+    
+
+    class Meta:
+        unique_together = ('brawler_a', 'brawler_b', 'map')
+
+        indexes = [
+            models.Index(fields=['brawler_a', 'brawler_b']),
+            models.Index(fields=['map']),
+        ]
+
+    def save(self, *args, **kwargs):
+        ##if i already have colt vs shelly in database, i dont want to save shelly vs colt in a different field
+        if self.brawler_a.brawler_name > self.brawler_b.brawler_name:
+            self.brawler_a, self.brawler_b = self.brawler_b, self.brawler_a
+
+        if self.matches_played > 0:
+            self.win_rate_a = self.matches_won_by_a / self.matches_played
+        else:
+            self.win_rate_a = 0.0
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.brawler_a} vs {self.brawler_b} (Map: {self.map}, Mode: {self.map.mode_name})"

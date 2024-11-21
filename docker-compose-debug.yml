@@ -2,8 +2,8 @@ version : '3.8'
 
 services:
   django:
-    container_name : django
-    build: 
+    container_name: django
+    build:
       context: .
       dockerfile: Dockerfile-dev
     volumes:
@@ -12,15 +12,18 @@ services:
     ports:
       - 8001:8000
       - 3000:3000
-      - "5678:5678"  # Debug port for debugpy
-    command: "python3 -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000"  # Single string without `>`
-
-    environment:
-      - DEBUGPY_DJANGO=true
+      - 5678:5678  # Debug port for debugpy
+    command: "python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"    #<---- for debugging the main process
+    #command: "python3 manage.py add_map_images"     #<---- for debugging admin commands
     env_file:
       - ./.env.dev
     depends_on:
       - db
+    user: root
+    environment:
+      - PYDEVD_DISABLE_FILE_VALIDATION=1
+      - DEBUGPY_DJANGO=True
+
   db:
     container_name: postgres
     image: postgres:15.7-alpine

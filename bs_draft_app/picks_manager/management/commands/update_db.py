@@ -4,9 +4,9 @@ from picks_manager.views import ManageDB
 from picks_manager.models import ScannedData
 
 def update_db():
-    scan_ammount = 25
+    scan_ammount = 120
     Manager = ManageDB()
-    scanned_games = Manager.update_map_list_and_winrate(scan_ammount)
+    scanned_games = Manager.update_map_list_and_winrate(scan_ammount, debug = True)
     print(f"scanned {scanned_games} ranked games")
     scan_data = ScannedData.objects.first()
     scan_data.scanned_games += scanned_games

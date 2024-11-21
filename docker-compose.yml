@@ -18,7 +18,7 @@ services:
     depends_on:
       - db
     command: python3 manage.py runserver 0.0.0.0:8000
-    user: root #for the dev container connection
+    user: root 
   db:
     container_name: postgres
     image: postgres:15.7-alpine

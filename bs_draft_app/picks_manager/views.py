@@ -7,7 +7,7 @@ import datetime
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
-from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass
+from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead
 
 
 # Create your views here.
@@ -41,12 +41,15 @@ class ManageDB:
             for key,value in data.items():
                 #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
                 if chosen_mode:
-                    if search_word.lower() == key.lower():
-                        clean_value = value.replace('-', '')
-                        if chosen_mode.lower() in clean_value.lower() and 'header' not in value:
+                    if search_word.lower() in key.lower():
+                        clean_value = value.replace('-', '').lower().replace(' ', '')
+                        chosen_mode = chosen_mode.lower()
+                        if chosen_mode.lower() == clean_value:
                             if return_parent:  ##sometimes i need the whole object, but only one so break it baby.
                                 results['map_object'] = data
-                            else:
+                                break
+
+                            elif "header" not in value:
                                 results.append(value)
                 else:
                     if search_word == key:
@@ -91,7 +94,6 @@ class ManageDB:
             self.update_brawler_list()
             crow = Brawler.objects.get(brawler_name = "Crow")
         support_class = BrawlerClass.objects.get(class_name = "Support")
-        print(support_class.class_name)
         crow.brawler_class = support_class
         crow.save()
         
@@ -149,10 +151,14 @@ class ManageDB:
         all_my_modes = Mode.objects.all()
         all_modes_request = requests.get('https://api.brawlify.com/v1/gamemodes')
         all_modes = all_modes_request.json()
+
         for mode in all_my_modes:
-            result = []
-            self.search_response(all_modes,'imageUrl', mode.mode_name.replace(' ', ''), result)
-            mode.mode_icon = result[0]
+            result = {}
+
+            # this link for example leads to bounty 'https://cdn.brawlify.com/game-modes/regular/48000003.png'
+
+            self.search_response(all_modes, 'name', mode.mode_name.replace(' ', ''), result, return_parent = True)
+            mode.mode_icon = result['map_object']['imageUrl']
             mode.mode_color = bg_colors[mode.mode_name]
             mode.save()
     
@@ -167,7 +173,6 @@ class ManageDB:
             image_url = map_obj['map_object']['imageUrl']
             map.image_url = image_url
             map.save()
-            print(map)
 
     @staticmethod
     def update_brawler_pics():
@@ -205,6 +210,8 @@ class ManageDB:
             for player_tag in top_players_tags:
                 db_player_tag = Player(player_tag = player_tag)
                 if not Player.objects.filter(player_tag = player_tag).exists():
+                    d = datetime.datetime.today() - datetime.timedelta(days=4)
+                    db_player_tag.last_checked = d
                     db_player_tag.save()
         return
     
@@ -223,15 +230,10 @@ class ManageDB:
         else: #if player team is 1 and he lost, winning team is 0. if player team is 0 and he lost, winning team is 1.
             winning_team = 1 - player_team
         
+        self.update_head_to_head_scores(result, teams[winning_team], teams[1 - winning_team], map)
         for player in teams[winning_team]:
             brawler_name = player['brawler']['name']
-            try: 
-                brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
-            except Brawler.DoesNotExist: 
-                print(brawler_name, "isnt in the database. Updating database.")
-                self.update_brawler_list()
-                self.update_brawler_pics()
-                break
+            brawler = Brawler.objects.get_or_update(brawler_name)
 
             try:
                 wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
@@ -243,13 +245,8 @@ class ManageDB:
         
         for player in teams[1-winning_team]:
             brawler_name = player['brawler']['name']
-            try:
-                brawler = Brawler.objects.get(brawler_name__iexact = brawler_name)
-            except Brawler.DoesNotExist:
-                print(brawler_name, "isnt in the database. Updating database.")
-                self.update_brawler_list()
-                self.update_brawler_pics()
-                break
+            brawler = Brawler.objects.get_or_update(brawler_name)
+
             try:
                 wr_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
                 wr_obj.games_played += 1
@@ -257,7 +254,32 @@ class ManageDB:
             except WinRate.DoesNotExist:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
+    
+    def update_head_to_head_scores(self, result, winning_team, losing_team, map):
+        for winner in winning_team:
+            winning_brawler = winner['brawler']['name']
+            winning_brawler = Brawler.objects.get_or_update(winning_brawler)
+            for loser in losing_team:
+                losing_brawler = loser['brawler']['name']
+                losing_brawler = Brawler.objects.get_or_update(losing_brawler)
+                matches_won_by_a = 1
+                brawlers = [winning_brawler, losing_brawler]
+                if winning_brawler.brawler_name > losing_brawler.brawler_name:
+                    brawlers = [losing_brawler, winning_brawler]
+                    matches_won_by_a = 0
+                try:
+                    head_to_head = HeadToHead.objects.get(brawler_a = brawlers[0], brawler_b = brawlers[1], map = map) ###left brawler always needs to be smaller than right alphabetically
+                    head_to_head.matches_played += 1
+                    head_to_head.matches_won_by_a += matches_won_by_a
+                    head_to_head.save()
+                except:
 
+                    head_to_head = HeadToHead(brawler_a = brawlers[0], brawler_b = brawlers[1], map = map, matches_played = 1, matches_won_by_a = matches_won_by_a)
+                    head_to_head.save()
+
+
+        
+    
     def look_for_ranked_games(self, game_data, player, debug = False): #helper function, used in updating the winrate. 
 
         player_tag = player.player_tag
@@ -272,7 +294,8 @@ class ManageDB:
         day = int(date[6:8])
         game_time = datetime.date(year = year,month = month,day = day)
         time_delta = game_time - player.last_checked
-        if time_delta.days < 1 and not debug: #for debug stuff i want to check the game anyways
+        if time_delta.days < 2 and not debug: #for debug stuff i want to check the game anyways
+            print(game_time, player.last_checked, time_delta)
             return
 
         for battles in game_data['items']:         
@@ -281,9 +304,9 @@ class ManageDB:
                     battle_type = battles['battle']['type']  
                 except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
                     continue
-                if battle_type == 'soloRanked' or battle_type == 'teamRanked' or battle_type == "ranked":  #i've seen all of these somehow
+                if battle_type == 'soloRanked' or battle_type == 'teamRanked':  #i've seen all of these somehow
                     self.i += 1
-                    if self.i % 50 == 0:
+                    if self.i % 10 == 0:
                         print(str(self.i) + " ranked games have been checked")
                     ranked_game_map = str(battles['event']['map'])
                     ranked_game_mode = str(battles['battle']['mode'])
@@ -324,7 +347,7 @@ class ManageDB:
                     result = battles['battle']['result']
                     teams = battles['battle']['teams']
                     self.update_win_rate(player_tag, result, teams, db_map)    
-                    return 
+        return 
                 
     def camel_case_to_normal(self, s):  
         words = []
@@ -337,7 +360,7 @@ class ManageDB:
         result = ' '.join(words)
         return result
 
-    def update_map_list_and_winrate(self, ammount_of_battlelogs): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
+    def update_map_list_and_winrate(self, ammount_of_battlelogs, debug = False): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
     #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
     #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
 
@@ -347,7 +370,7 @@ class ManageDB:
             player_num_object = ScannedData.objects.first()
             player_num = player_num_object.last_player_checked
         except AttributeError:
-            player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0)
+            player_num_object = ScannedData(last_player_checked = 0, scanned_games = 0, ammount_of_maps = 24)
             player_num = 0
 
         player_ammount = Player.objects.count()
@@ -358,7 +381,9 @@ class ManageDB:
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
         player_num_object.last_player_checked = player_num + ammount_of_battlelogs
         player_num_object.save()
-        ScannedData.objects.first().delete() #im manipulating the pk here which i shouldnt do but whatever. just delete the old object
+        
+        if ScannedData.objects.all().count() > 1:
+            ScannedData.objects.first().delete() #im manipulating the pk here which i shouldnt do but whatever. just delete the old object
 
         #retrieve last games from players
         for player in players:
@@ -377,7 +402,8 @@ class ManageDB:
 
 
             all_games = all_games.json()
-            self.look_for_ranked_games(all_games, player)        
+            self.look_for_ranked_games(all_games, player, debug = debug)        
+        
         return self.i
     
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
