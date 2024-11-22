@@ -248,6 +248,6 @@ function handler(e) {
 }
 
 
-function season_alert(){
-  alert("The game is currently inbetween ranked seasons, or the API is in maintenance. Showing mock data")
-}
+// function season_alert(){
+//   alert("The game is currently inbetween ranked seasons, or the API is in maintenance. Showing mock data")
+// }
