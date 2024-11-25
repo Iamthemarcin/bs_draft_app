@@ -7,7 +7,7 @@ import datetime
 from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
-from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead
+from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead, Synergy
 
 
 # Create your views here.
@@ -230,7 +230,8 @@ class ManageDB:
         else: #if player team is 1 and he lost, winning team is 0. if player team is 0 and he lost, winning team is 1.
             winning_team = 1 - player_team
         
-        self.update_head_to_head_scores(result, teams[winning_team], teams[1 - winning_team], map)
+        self.update_head_to_head_scores(teams[winning_team], teams[1 - winning_team], map)
+        self.update_synergies(teams[winning_team], teams[1 - winning_team], map)
         for player in teams[winning_team]:
             brawler_name = player['brawler']['name']
             brawler = Brawler.objects.get_or_update(brawler_name)
@@ -255,7 +256,7 @@ class ManageDB:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
     
-    def update_head_to_head_scores(self, result, winning_team, losing_team, map):
+    def update_head_to_head_scores(self, winning_team, losing_team, map):
         for winner in winning_team:
             winning_brawler = winner['brawler']['name']
             winning_brawler = Brawler.objects.get_or_update(winning_brawler)
@@ -277,9 +278,66 @@ class ManageDB:
                     head_to_head = HeadToHead(brawler_a = brawlers[0], brawler_b = brawlers[1], map = map, matches_played = 1, matches_won_by_a = matches_won_by_a)
                     head_to_head.save()
 
-
+    def update_synergies(self, winning_team, losing_team, map):
+            
+        def combination(arr, data, start,  # [A,B,C] -> [[A,B], [A,C], [B,C]]
+                            end, index, r, result):
+            if (index == r):
+                combo = []
+                for j in range(r):
+                    combo.append(data[j])
+                result.append(combo)
+                return 
+            
+            i = start; 
+            while(i <= end and end - i + 1 >= r - index):
+                data[index] = arr[i]
+                combination(arr, data, i + 1, 
+                                end, index + 1, r, result)
+                i += 1
+            return result
         
-    
+        winning_team_brawlers = []
+        for winner in winning_team:
+            winning_brawler = winner['brawler']['name']
+            winning_team_brawlers.append(winning_brawler)
+
+        losing_team_brawlers = []
+        for loser in losing_team:
+            losing_brawler = loser['brawler']['name']
+            losing_team_brawlers.append(losing_brawler)
+
+        arr = winning_team_brawlers
+        r = 2
+        n = len(arr)
+        data = [0]*r
+        winning_brawler_pairs = combination(arr, data, 0, n-1, 0, r, [])
+        arr = losing_team_brawlers
+        losing_brawler_pairs =  combination(arr, data, 0, n-1, 0, r, [])      
+
+        for brawler_pair in winning_brawler_pairs:
+            brawler_pair.sort() #### Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
+            brawler_a = Brawler.objects.get_or_update(brawler_name = brawler_pair[0])
+            brawler_b = Brawler.objects.get_or_update(brawler_name = brawler_pair[1])
+            try:
+                synergy_instance = Synergy.objects.get(brawler_a = brawler_a, brawler_b = brawler_b, map = map)
+            except Synergy.DoesNotExist:
+                synergy_instance = Synergy(brawler_a = brawler_a, brawler_b = brawler_b, map = map)
+            synergy_instance.matches_played += 1
+            synergy_instance.matches_won += 1
+            synergy_instance.save()
+        #could refactor into one function this and winning brawler scan
+        for brawler_pair in losing_brawler_pairs:
+            brawler_pair.sort() #### Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
+            brawler_a = Brawler.objects.get_or_update(brawler_name = brawler_pair[0])
+            brawler_b = Brawler.objects.get_or_update(brawler_name = brawler_pair[1])
+            try:
+                synergy_instance = Synergy.objects.get(brawler_a = brawler_a, brawler_b = brawler_b, map = map)
+            except Synergy.DoesNotExist:
+                synergy_instance = Synergy(brawler_a = brawler_a, brawler_b = brawler_b, map = map)
+            synergy_instance.matches_played += 1
+            synergy_instance.save()
+
     def look_for_ranked_games(self, game_data, player, debug = False): #helper function, used in updating the winrate. 
 
         player_tag = player.player_tag
@@ -346,7 +404,9 @@ class ManageDB:
                     #this part is for wr calcualting, wasnt planning on it being here but here we are
                     result = battles['battle']['result']
                     teams = battles['battle']['teams']
-                    self.update_win_rate(player_tag, result, teams, db_map)    
+                    self.update_win_rate(player_tag, result, teams, db_map)
+                    
+                    
         return 
                 
     def camel_case_to_normal(self, s):  

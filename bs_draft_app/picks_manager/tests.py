@@ -1,6 +1,6 @@
 from django.test import TestCase
 from picks_manager.views import ManageDB 
-from picks_manager.models import Player, WinRate, Map, HeadToHead, Brawler
+from picks_manager.models import Player, WinRate, Map, HeadToHead, Brawler, Synergy
 import datetime 
 
 # Create your tests here.
@@ -42,8 +42,20 @@ class TestWinRatesCollection(TestCase):
         myh2h = HeadToHead.objects.get(brawler_a = brawler_a, brawler_b = brawler_b)
         self.assertEqual(myh2h.matches_won_by_a, 2)
 
+    def test_synergies(self):
+        winning_team = ["Pam","Moe","Kenji"]
+        losing_team = ["Tick","Edgar","Frank"]
+        db_map = Map.objects.first()
+        m = ManageDB()
+        m.update_synergies(winning_team,losing_team, db_map)
+        brawler_a = Brawler.objects.get_or_update(brawler_name = "Moe") #alphabetical order, brawler a < brawler b
+        brawler_b = Brawler.objects.get_or_update(brawler_name = "Pam")
+        my_synergy = Synergy.objects.get(brawler_a = brawler_a, brawler_b = brawler_b, map = db_map)
+        self.assertEqual(my_synergy.brawler_a, brawler_a)
+
+
 example_piece_of_response_data = {
-  "items": [
+  "items" : [
     {
       "battleTime": "20241022T052147.000Z",
       "event": {

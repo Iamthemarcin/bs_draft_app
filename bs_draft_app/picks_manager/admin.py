@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Mode, Map, Brawler, WinRate, Player, ScannedData, BrawlerClass, HeadToHead
+from .models import Mode, Map, Brawler, WinRate, Player, ScannedData, BrawlerClass, HeadToHead, Synergy
 
 
 register_me = [Mode, Map, Brawler, Player, ScannedData, BrawlerClass]
@@ -14,7 +14,13 @@ class WinRateAdmin(admin.ModelAdmin):
     ordering = ['brawler_name__brawler_name'] 
 
 @admin.register(HeadToHead)
-class WinRateAdmin(admin.ModelAdmin):
+class HeadToHeadAdmin(admin.ModelAdmin):
     list_display = ('brawler_a', 'brawler_b', 'map', 'matches_played', 'win_rate_a')  
+    list_filter = ('brawler_a', 'brawler_b') 
+    ordering = ['brawler_a__brawler_name'] 
+
+@admin.register(Synergy)
+class SynergyAdmin(admin.ModelAdmin):
+    list_display = ('brawler_a', 'brawler_b', 'map', 'matches_played', 'win_rate_together')  
     list_filter = ('brawler_a', 'brawler_b') 
     ordering = ['brawler_a__brawler_name'] 

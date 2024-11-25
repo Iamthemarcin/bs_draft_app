@@ -151,11 +151,6 @@ class HeadToHead(models.Model):
     class Meta:
         unique_together = ('brawler_a', 'brawler_b', 'map')
 
-        indexes = [
-            models.Index(fields=['brawler_a', 'brawler_b']),
-            models.Index(fields=['map']),
-        ]
-
     def save(self, *args, **kwargs):
         ##if i already have colt vs shelly in database, i dont want to save shelly vs colt in a different field
         if self.brawler_a.brawler_name > self.brawler_b.brawler_name:
@@ -169,3 +164,27 @@ class HeadToHead(models.Model):
 
     def __str__(self):
         return f"{self.brawler_a} vs {self.brawler_b} (Map: {self.map}, Mode: {self.map.mode_name})"
+
+class Synergy(models.Model):
+    brawler_a = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="synergy_a")
+    brawler_b = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="synergy_b")
+    
+    map = models.ForeignKey(Map, on_delete= models.CASCADE)  
+    matches_played = models.PositiveIntegerField(default=0)
+    matches_won = models.PositiveIntegerField(default=0)
+    win_rate_together = models.FloatField(default=0.0)
+    
+    class Meta:
+        unique_together = ('brawler_a', 'brawler_b', 'map')
+        verbose_name_plural = "Synergies"
+
+    def save(self, *args, **kwargs):
+        ##same as in headtoheads
+        if self.brawler_a.brawler_name > self.brawler_b.brawler_name:
+            self.brawler_a, self.brawler_b = self.brawler_b, self.brawler_a
+
+        if self.matches_played > 0:
+            self.win_rate_together = self.matches_won / self.matches_played
+        else:
+            self.win_rate_together = 0.0
+        super().save(*args, **kwargs)
