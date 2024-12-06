@@ -26,12 +26,16 @@ services:
     environment:
       - CRON=true
     depends_on:
-    - db
+      - db
     user: bs_draft_app
-    command: crond -f -l 2  # Keeps the container running
+    command: crond -f -l 2 # Keeps the container running
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5" # Limit to .5 CPU cores
 
   db:
-    container_name: postgres    
+    container_name: postgres
     image: postgres:15.7-alpine
     restart: always
     volumes:
@@ -44,7 +48,7 @@ services:
   proxy:
     container_name: proxy
     build:
-      context: ./docker/proxy  
+      context: ./docker/proxy
     restart: always
     depends_on:
       - django
