@@ -17,12 +17,12 @@ def check_counterability_and_pick_rate(top_brawlers, picked_brawlers = None):
     #field by just assigning easy_to_counter based on my feel/experience
     if not picked_brawlers or len(picked_brawlers) < 4:
         for top_brawler in top_brawlers:
-            
-            #brawlers with super low pick rate are unfairly favoured because ppl who play them usually 
+
+            #brawlers with super low pick rate are unfairly favoured because ppl who play them usually
             #know what they're doing and a general player will do much worse than those guys.
             use_rate = top_brawler.use_rate *100
-            if use_rate < 5: 
-                #in %. when pick rate is 0 viability goes down by 0.25. When its around 5% it 
+            if use_rate < 5:
+                #in %. when pick rate is 0 viability goes down by 0.25. When its around 5% it
                 #goes down by 0
                 top_brawler.viability -= (0.05*use_rate +0.25)
 
@@ -30,13 +30,12 @@ def check_counterability_and_pick_rate(top_brawlers, picked_brawlers = None):
             easy_to_counter = str(top_brawler.brawler_name.easy_to_counter)
             if easy_to_counter == "Yes":
                 top_brawler.viability -= 1
-                
+
             if easy_to_counter == "Sorta":
                 top_brawler.viability -= 0.5
     return top_brawlers
 #func to find out if you already have a viable gem carrier in ur team
-def gem_grab_update_viability(top_brawlers,gem_carriers = 0): 
-    print("hli")
+def gem_grab_update_viability(top_brawlers,gem_carriers = 0):
     for top_brawler in top_brawlers:
         top_brawler_obj = top_brawler.brawler_name
         if gem_carriers < 1:
@@ -49,7 +48,7 @@ def gem_grab_update_viability(top_brawlers,gem_carriers = 0):
                 top_brawler.viability -= 0.5
             elif top_brawler_obj.gem_carrier == "Sorta":
                     top_brawler.viability -= 0.25
-                    
+
 #this function and the gem_grab function could be combined into one by just passing the mode name
 #into the function and writing a tuple of variables but this feels nicer to debug
 #hot zone stuff, you want at least one hot zone sitter, two are cool too.
@@ -67,21 +66,21 @@ def hot_zone_update_viability(top_brawlers, hz_sitters = 0):
                 top_brawler.viability -= 0.5
             elif top_brawler_obj.hz_sitter == "Sorta":
                     top_brawler.viability -= 0.25
-    
+
 
 #function respoinsible for calculating which brawlers to suggest
 def get_top_brawlers(map, ammount, picked_brawlers = None):
     curr_map = Map.objects.get(map_name = map)
     curr_map_mode = str(curr_map.mode_name)
 
-    if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views. 
+    if picked_brawlers: #adjust the picks depending on what has been already picked. classes and their counters are defined in picksmanager views.
         team1 = set()
         team2 = set()
         for i,brawler_name in enumerate(picked_brawlers, start = 1): #determine which brawlers belong to your and enemy team depending which player is choosing the pick
-             # The pick order is like this: 
-             # 1. team1 
-             # 2,3.team2 
-             # 4,5. team1 
+             # The pick order is like this:
+             # 1. team1
+             # 2,3.team2
+             # 4,5. team1
              # 6. team2
             if i in [1,4,5]:
                 team1.add(brawler_name)
@@ -105,7 +104,7 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
             for top_brawler in top_brawlers:
                 counters_pets = top_brawler.brawler_name.counters_pets
                 countered_by_pets = top_brawler.brawler_name.countered_by_pets
-                
+
                 #if enemy brawler has pets and top brawler is good into pets, his viability goes up
                 if has_pets == "Yes":
                     if counters_pets == "Yes":
@@ -117,7 +116,7 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                         top_brawler.viability += 0.25
                     elif counters_pets == "Sorta":
                         top_brawler.viability += 0.15
-                
+
                 #if enemy brawler has pets and top brawler is bad into pets, his viability goes down
                 if countered_by_pets == "Yes":
                     if has_pets == "Yes":
@@ -154,7 +153,7 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
                 elif picked_brawler.gem_carrier == "Sorta":
                     gem_carriers += 0.5
             gem_grab_update_viability(top_brawlers, gem_carriers)
-        
+
         #hot zone stuff, you want at least one hot zone sitter, two are cool too.
         if curr_map_mode == "Hot Zone":
             hz_sitters = 0
@@ -178,14 +177,14 @@ def get_top_brawlers(map, ammount, picked_brawlers = None):
 
 
 
-        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
+        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)
 
     else:
         top_brawlers = WinRate.objects.filter(map_name__map_name = map).calc_viability().order_by('-viability')[:ammount]
         check_counterability_and_pick_rate(top_brawlers, picked_brawlers)
         if curr_map_mode == "Gem Grab":
             gem_grab_update_viability(top_brawlers)
-        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)    
+        top_brawlers = sorted(top_brawlers, key = lambda o:o.viability, reverse=True)
 
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100,2)
@@ -215,7 +214,7 @@ def index(request):
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
     #choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
     top_brawlers = get_top_brawlers(chosen_map,16)
-    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps, 
+    context = {'top_row':top_row, 'bottom_row':bottom_row, 'mode_icon_link' : mode_icon_link, 'maps': maps,
                'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers, 'maps_per_column': maps_per_column,
                 'columns': columns }
     return render(request, "homepage.html", context)

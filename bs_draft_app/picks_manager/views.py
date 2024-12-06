@@ -63,9 +63,9 @@ class ManageDB:
             for i in data:
                 self.search_response(i, search_word, chosen_mode, results, return_parent)
 
-    def update_brawler_classes(self):      
+    def update_brawler_classes(self):
         class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery':'Assassin', 'Controller':'Artillery', 'Marksman':'Assassin', 'Damage Dealer':'Marksman', 'Support':['Tank', 'Assassin'], 'Tank':['Damage Dealer', 'Controller']}
-        
+
         for b_class,counters in class_counters.items():
             if isinstance(counters,list):
                 for counter in counters:
@@ -83,12 +83,12 @@ class ManageDB:
                         brawler_class = BrawlerClass.objects.get(class_name = b_class)
                     except:
                         brawler_class = BrawlerClass(class_name = b_class)
-                    
+
                     if counters not in brawler_class.countered_by:
-                        brawler_class.countered_by += counters                
+                        brawler_class.countered_by += counters
                         brawler_class.save()
         #crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
-        try: 
+        try:
             crow = Brawler.objects.get(brawler_name = "Crow")
         except Brawler.DoesNotExist:
             self.update_brawler_list()
@@ -96,9 +96,9 @@ class ManageDB:
         support_class = BrawlerClass.objects.get(class_name = "Support")
         crow.brawler_class = support_class
         crow.save()
-        
+
     @staticmethod
-    def update_brawler_list():        
+    def update_brawler_list():
         #updating the brawlers properties based on api
         all_brawlers_request = requests.get('https://api.brawlapi.com/v1/brawlers')
         all_brawlers_json = all_brawlers_request.json()
@@ -113,10 +113,10 @@ class ManageDB:
             brawler = Brawler(brawler_name = brawler_name, rarity = rarity, image_url = image_url, brawler_class = brawler_class)
             brawler.save()
         #updating the brawler properties based on my csv document
-        
+
         x = static('misc/brawler_traits.csv')
         with open(f'.{x}', 'r+') as f:
-            brawlers = f.read().splitlines() 
+            brawlers = f.read().splitlines()
 
             for brawler_properties in brawlers[1:]:
                 brawler_properties_list = brawler_properties.split(",")
@@ -139,7 +139,7 @@ class ManageDB:
             f.close()
 
 
-    def update_modes(self): #use this after updating maps and cleaning maps, at least 1k battlelogs. 
+    def update_modes(self): #use this after updating maps and cleaning maps, at least 1k battlelogs.
         bg_colors = {
             'Gem Grab':'rgba(154,61,243,255)',
             'Heist':'rgba(214,92,211,255)',
@@ -161,7 +161,7 @@ class ManageDB:
             mode.mode_icon = result['map_object']['imageUrl']
             mode.mode_color = bg_colors[mode.mode_name]
             mode.save()
-    
+
     def update_map_pics(self):
         my_maps = Map.objects.all()
         all_maps_request = requests.get('https://api.brawlapi.com/v1/maps')
@@ -200,7 +200,7 @@ class ManageDB:
                 country_code = country_code.replace('\n', '')
                 country_codes_list.append(country_code)
             f.close()
-            
+
         for country in country_codes_list:
             top_players = requests.get(f'https://api.brawlstars.com/v1/rankings/{country}/players', self.headers)
             top_players = top_players.json()
@@ -214,22 +214,22 @@ class ManageDB:
                     db_player_tag.last_checked = d
                     db_player_tag.save()
         return
-    
+
     def update_win_rate(self,player_tag, result, teams, map):
         player_team = 1
         team_0_brawlers = []
 
-        #find which team our player was a part of 
+        #find which team our player was a part of
         for player in teams[0]:
             team_0_brawlers.append(player['brawler']['name'])
             if player['tag'] == player_tag:
                 player_team = 0
-        
+
         if result == 'victory':
             winning_team = player_team
         else: #if player team is 1 and he lost, winning team is 0. if player team is 0 and he lost, winning team is 1.
             winning_team = 1 - player_team
-        
+
         self.update_head_to_head_scores(teams[winning_team], teams[1 - winning_team], map)
         self.update_synergies(teams[winning_team], teams[1 - winning_team], map)
         for player in teams[winning_team]:
@@ -243,7 +243,7 @@ class ManageDB:
                 wr_obj.save()
             except WinRate.DoesNotExist:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 1, use_rate = 1/map.games_played).save()
-        
+
         for player in teams[1-winning_team]:
             brawler_name = player['brawler']['name']
             brawler = Brawler.objects.get_or_update(brawler_name)
@@ -255,7 +255,7 @@ class ManageDB:
             except WinRate.DoesNotExist:
                 WinRate(brawler_name = brawler, map_name = map, games_played = 1, games_won = 0, use_rate = 1/map.games_played).save()
         return
-    
+
     def update_head_to_head_scores(self, winning_team, losing_team, map):
         for winner in winning_team:
             winning_brawler = winner['brawler']['name']
@@ -279,7 +279,7 @@ class ManageDB:
                     head_to_head.save()
 
     def update_synergies(self, winning_team, losing_team, map):
-            
+
         def combination(arr, data, start,  # [A,B,C] -> [[A,B], [A,C], [B,C]]
                             end, index, r, result):
             if (index == r):
@@ -287,16 +287,16 @@ class ManageDB:
                 for j in range(r):
                     combo.append(data[j])
                 result.append(combo)
-                return 
-            
-            i = start; 
+                return
+
+            i = start
             while(i <= end and end - i + 1 >= r - index):
                 data[index] = arr[i]
-                combination(arr, data, i + 1, 
+                combination(arr, data, i + 1,
                                 end, index + 1, r, result)
                 i += 1
             return result
-        
+
         winning_team_brawlers = []
         for winner in winning_team:
             winning_brawler = winner['brawler']['name']
@@ -313,7 +313,7 @@ class ManageDB:
         data = [0]*r
         winning_brawler_pairs = combination(arr, data, 0, n-1, 0, r, [])
         arr = losing_team_brawlers
-        losing_brawler_pairs =  combination(arr, data, 0, n-1, 0, r, [])      
+        losing_brawler_pairs =  combination(arr, data, 0, n-1, 0, r, [])
 
         for brawler_pair in winning_brawler_pairs:
             brawler_pair.sort() #### Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
@@ -338,12 +338,12 @@ class ManageDB:
             synergy_instance.matches_played += 1
             synergy_instance.save()
 
-    def look_for_ranked_games(self, game_data, player, debug = False): #helper function, used in updating the winrate. 
+    def look_for_ranked_games(self, game_data, player, debug = False): #helper function, used in updating the winrate.
 
         player_tag = player.player_tag
         if not 'items' in game_data:
             print("No games retrieved" + str(game_data))
-            return 
+            return
         #check if the last game was played within last x days.
         last_game = len(game_data['items'])-1
         date = game_data['items'][last_game]['battleTime']
@@ -356,10 +356,10 @@ class ManageDB:
             print(game_time, player.last_checked, time_delta)
             return
 
-        for battles in game_data['items']:         
+        for battles in game_data['items']:
             if battles['battle']:
                 try:
-                    battle_type = battles['battle']['type']  
+                    battle_type = battles['battle']['type']
                 except KeyError: ####older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
                     continue
                 if battle_type == 'soloRanked' or battle_type == 'teamRanked':  #i've seen all of these somehow
@@ -369,13 +369,13 @@ class ManageDB:
                     ranked_game_map = str(battles['event']['map'])
                     ranked_game_mode = str(battles['battle']['mode'])
 
-                    #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api) 
+                    #this part creates not only maps, but modes too, since they're like right here anyway, cant assign the image tho (diff api)
                     # so gotta make another call (the update_modes function).
                     #( Wont make the call in this funciton tho, too much stuff going on already and its gon be used thousands of times to update winrate.
 
                     mode = ranked_game_mode.replace("'","\"").replace("\"s", "'s")
                     mode = self.camel_case_to_normal(mode)
-                    try: 
+                    try:
                         db_mode = Mode.objects.get(mode_name = mode)
                     except Mode.DoesNotExist:
                         db_mode = Mode(mode_name = mode)
@@ -383,7 +383,7 @@ class ManageDB:
 
                     map = ranked_game_map.replace("'","\"").replace("\"s", "'s")
                     try:
-                        db_map = Map.objects.get(map_name = map, mode_name= mode) 
+                        db_map = Map.objects.get(map_name = map, mode_name= mode)
                         db_map.games_played += 1
                         db_map.save()
                     #if map doesnt exist and there are less than the ammount of seasonal maps in db, create it, if it does add a game played to the map
@@ -405,11 +405,9 @@ class ManageDB:
                     result = battles['battle']['result']
                     teams = battles['battle']['teams']
                     self.update_win_rate(player_tag, result, teams, db_map)
-                    
-                    
-        return 
-                
-    def camel_case_to_normal(self, s):  
+        return
+
+    def camel_case_to_normal(self, s):
         words = []
         start = 0
         for i, c in enumerate(s[1:], start = 1):
@@ -420,11 +418,8 @@ class ManageDB:
         result = ' '.join(words)
         return result
 
-    def update_map_list_and_winrate(self, ammount_of_battlelogs, debug = False): #allright, so there isnt any way to get the current power league map rotation from the official API rn, im instead going to have to get
-    #     the top players ranking list, then get the match history of those players (100 games) and check in which games they have played powerleague. 
-    #     Then just go through maps in those games and add them to a set. after doing that a couple of times i should have all the possible power league maps.
+    def update_map_list_and_winrate(self, ammount_of_battlelogs, debug = False): #This function populates the database with maps
 
-        
         #I only want to send ammount_of_battlelogs requests per map update call
         try:
             player_num_object = ScannedData.objects.first()
@@ -436,12 +431,12 @@ class ManageDB:
         player_ammount = Player.objects.count()
         #I dont want to update my maps based on the same players everytime (they have same battles duh), so i get a couple thousand best player tags and then go through them X at a time. If I went through all of them then go back to the beggining.
         if player_num > player_ammount - ammount_of_battlelogs:
-            player_num = 0       
-        
+            player_num = 0
+
         players = Player.objects.all()[player_num:player_num+ammount_of_battlelogs]
         player_num_object.last_player_checked = player_num + ammount_of_battlelogs
         player_num_object.save()
-        
+
         if ScannedData.objects.all().count() > 1:
             ScannedData.objects.first().delete() #im manipulating the pk here which i shouldnt do but whatever. just delete the old object
 
@@ -453,7 +448,7 @@ class ManageDB:
             player.save()
             player_tag_link = player_tag.replace('#', '')
             request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(player_tag_link)
-            try: 
+            try:
                 all_games = requests.get(request_link, self.headers, timeout = 2)
             except requests.exceptions.RequestException as e:
                 print(f"Error fetching the game data from player {player}. Fix it one day maybe. No clue what causes it yet, setting bigger timeout helps a lot tho.")
@@ -462,13 +457,13 @@ class ManageDB:
 
 
             all_games = all_games.json()
-            self.look_for_ranked_games(all_games, player, debug = debug)        
-        
+            self.look_for_ranked_games(all_games, player, debug = debug)
+
         return self.i
-    
+
     #i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
-    #and i dont want to make it execute longer. just run this after updating wr. 
-class CleaningDB:    
+    #and i dont want to make it execute longer. just run this after updating wr.
+class CleaningDB:
     @staticmethod
     def clean_up_the_maps():
         max_amm_of_maps = 18 #sometimes peoples games from previous season get thru to the db, this func cleans up those games from db
