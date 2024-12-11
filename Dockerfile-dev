@@ -1,4 +1,4 @@
-FROM python:3.12-alpine
+FROM python:3.8-alpine
 LABEL maintainer="milczanowski.marcin01@gmail.com"
 
 ENV PYTHONUNBUFFERED 1
@@ -11,38 +11,41 @@ COPY ./bs_draft_app .
 COPY ./scripts /scripts/
 
 EXPOSE 8000
-EXPOSE 5678  
+EXPOSE 5678
 
 
 RUN chmod 755 /scripts/update_db.sh
 
 #build fails without this stuff wheels aint spinnin
 RUN apk add --no-cache --virtual .build-deps \
-    ca-certificates gcc postgresql-dev linux-headers musl-dev \
-    libffi-dev jpeg-dev zlib-dev 
+    ca-certificates gcc postgresql-dev linux-headers musl-dev libffi-dev jpeg-dev zlib-dev \
+    python3-dev build-base libpcap-dev libnl3-dev
+#The second row was added in order to debug netifaces. From left to right
 #reqs
-RUN pip install -r requirements.txt 
+RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install debugpy
+RUN pip install django-silk
+
 
 # Wizardry script from some article made by a saint who knows alpine commands. Saves like 100mb space!!!
 
 RUN find /usr/local \
-        \( -type d -a -name test -o -name tests \) \
-        -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
-        -exec rm -rf '{}' + \
+    \( -type d -a -name test -o -name tests \) \
+    -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
+    -exec rm -rf '{}' + \
     && runDeps="$( \
-        scanelf --needed --nobanner --recursive /usr/local \
-                | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-                | sort -u \
-                | xargs -r apk info --installed \
-                | sort -u \
+    scanelf --needed --nobanner --recursive /usr/local \
+    | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+    | sort -u \
+    | xargs -r apk info --installed \
+    | sort -u \
     )" \
     && apk add --virtual .rundeps $runDeps
 
-RUN apk del .build-deps 
+RUN apk del .build-deps
 
 RUN chmod 755 /scripts/entrypoint.sh &&\
-chmod -R 755 static
+    chmod -R 755 static
 
 USER root
 

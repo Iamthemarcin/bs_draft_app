@@ -1,4 +1,4 @@
-FROM python:3.12-alpine AS builder 
+FROM python:3.8-alpine AS builder
 LABEL maintainer="milczanowski.marcin01@gmail.com"
 
 ENV PYTHONUNBUFFERED 1
@@ -10,23 +10,26 @@ COPY ./requirements.txt /bs_draft_app/requirements.txt
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
     apk add --update --no-cache --virtual .build-deps \
-        build-base \
-        postgresql-dev \
-        musl-dev \
-        linux-headers && \
+    py3-pip \
+    libffi-dev \
+    build-base \
+    postgresql-dev \
+    python3-dev \
+    musl-dev \
+    linux-headers && \
     apk add --update --no-cache postgresql-client busybox-suid&& \
     /py/bin/pip install -r /bs_draft_app/requirements.txt && \
     runDeps="$( \
-        scanelf --needed --nobanner --recursive /py \
-        | awk '{ gsub(/,/, "\\nso:", $2); print "so:" $2 }' \
-        | sort -u \
-        | xargs -r apk info --installed \
-        | sort -u \
+    scanelf --needed --nobanner --recursive /py \
+    | awk '{ gsub(/,/, "\\nso:", $2); print "so:" $2 }' \
+    | sort -u \
+    | xargs -r apk info --installed \
+    | sort -u \
     )" && \
     apk add --no-cache --virtual .rundeps $runDeps && \
     apk del .build-deps
 
-FROM python:3.12-alpine
+FROM python:3.8-alpine
 
 #stage-2 copying the env without unnecessary dependencies and making the app
 WORKDIR /bs_draft_app
@@ -39,25 +42,25 @@ RUN chmod 755 /scripts/update_db.sh && \
     adduser --disabled-password --no-create-home bs_draft_app && \
     apk add --update --no-cache postgresql-client&& \
     mkdir -p /vol/web/static && \
-#permission stuff    
+    #permission stuff
     chown -R bs_draft_app:bs_draft_app /vol && \
     chmod -R 755 /vol && \
     chmod -R +x /scripts &&\
     chown -R bs_draft_app:bs_draft_app static/misc &&\
     chmod -R 755 static/misc &&\
-#optimize space, articles are op
+    #optimize space, articles are op
     find /usr/local \
-\( -type d -a -name test -o -name tests \) \
--o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
--exec rm -rf '{}' + \
-&& runDeps="$( \
-scanelf --needed --nobanner --recursive /usr/local \
-        | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-        | sort -u \
-        | xargs -r apk info --installed \
-        | sort -u \
-)" \
-&& apk add --virtual .rundeps $runDeps
+    \( -type d -a -name test -o -name tests \) \
+    -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
+    -exec rm -rf '{}' + \
+    && runDeps="$( \
+    scanelf --needed --nobanner --recursive /usr/local \
+    | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
+    | sort -u \
+    | xargs -r apk info --installed \
+    | sort -u \
+    )" \
+    && apk add --virtual .rundeps $runDeps
 
 
 ENV PATH="/scripts:/py/bin:$PATH"

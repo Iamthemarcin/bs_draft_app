@@ -30,7 +30,7 @@ DEBUG = bool(os.environ.get("DEBUG", default=0))
 ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "localhost").split(" ")
 
 
-CSRF_TRUSTED_ORIGINS=['https://*.brawldraft.xyz']
+CSRF_TRUSTED_ORIGINS = ['https://*.brawldraft.xyz']
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,7 +59,7 @@ ROOT_URLCONF = 'power_draft.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR,'templates')],
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,7 +68,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-            'libraries':{
+            'libraries': {
                 'templatetags': 'lib.templatetags',
             }
 
@@ -142,3 +142,16 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+"-----------------------------------------------------------SILK STUFF------------------------------------------------------"
+SILKY_PYTHON_PROFILER = True
+SILKY_PYTHON_PROFILER_BINARY = True
+if not os.getenv('DEBUGPY_DJANGO'):
+    def silk_profile(*args, **kwargs):
+        def no_op_decorator(func):
+            return func
+        return no_op_decorator
+if os.getenv('DEBUGPY_DJANGO'):
+    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
+    INSTALLED_APPS += ['silk']

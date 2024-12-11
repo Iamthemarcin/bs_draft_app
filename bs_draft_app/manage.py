@@ -2,17 +2,16 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
-import debugpy
 
-    
 
 def main():
     """Run administrative tasks."""
-    #if you start the django with the docker compose up -f "docker-compose-debug.yml" command you'll have a debugger.
-    #it slows down restarting a bit tho so only use in bigboi bugs
+    # if you start the django with the docker compose up -f "docker-compose-debug.yml" command you'll have a debugger.
+    # it slows down restarting a bit tho so only use in bigboi bugs
 
     if os.getenv("DEBUGPY_DJANGO") == "True":
-        
+        import debugpy
+
         if not debugpy.is_client_connected():
             try:
                 debugpy.listen(("0.0.0.0", 5678))
@@ -20,8 +19,6 @@ def main():
                 debugpy.wait_for_client()
             except RuntimeError:
                 pass
-
-
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'power_draft.settings')
     try:
@@ -35,8 +32,10 @@ def main():
     try:
         execute_from_command_line(sys.argv)
     except SystemExit as e:
-        if e.code != 0: 
+        if e.code != 0:
             raise
         sys.exit(0)
+
+
 if __name__ == '__main__':
     main()

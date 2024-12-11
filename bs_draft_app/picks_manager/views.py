@@ -8,6 +8,7 @@ from io import BytesIO
 from django.conf import settings
 from django.templatetags.static import static
 from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead, Synergy
+from itertools import combinations
 
 
 # Create your views here.
@@ -42,8 +43,11 @@ class ManageDB:
                 #sometimes I want to check the values for stuff and sometimes i dont, this slows down the function a bit but makes it more reusable, i dont have that much data to get thru
                 if chosen_mode:
                     if search_word.lower() in key.lower():
+
+
                         clean_value = value.replace('-', '').lower().replace(' ', '')
-                        chosen_mode = chosen_mode.lower()
+                        chosen_mode = chosen_mode.lower().replace(' ', '')
+
                         if chosen_mode.lower() == clean_value:
                             if return_parent:  ##sometimes i need the whole object, but only one so break it baby.
                                 results['map_object'] = data
@@ -169,6 +173,7 @@ class ManageDB:
         for map in my_maps:
             clean_name = map.map_name.replace('\'', '')
             map_obj = {}
+            print(clean_name)
             self.search_response(all_maps, 'name', clean_name, map_obj, return_parent = True)
             image_url = map_obj['map_object']['imageUrl']
             map.image_url = image_url
@@ -280,22 +285,6 @@ class ManageDB:
 
     def update_synergies(self, winning_team, losing_team, map):
 
-        def combination(arr, data, start,  # [A,B,C] -> [[A,B], [A,C], [B,C]]
-                            end, index, r, result):
-            if (index == r):
-                combo = []
-                for j in range(r):
-                    combo.append(data[j])
-                result.append(combo)
-                return
-
-            i = start
-            while(i <= end and end - i + 1 >= r - index):
-                data[index] = arr[i]
-                combination(arr, data, i + 1,
-                                end, index + 1, r, result)
-                i += 1
-            return result
 
         winning_team_brawlers = []
         for winner in winning_team:
@@ -307,15 +296,11 @@ class ManageDB:
             losing_brawler = loser['brawler']['name']
             losing_team_brawlers.append(losing_brawler)
 
-        arr = winning_team_brawlers
-        r = 2
-        n = len(arr)
-        data = [0]*r
-        winning_brawler_pairs = combination(arr, data, 0, n-1, 0, r, [])
-        arr = losing_team_brawlers
-        losing_brawler_pairs =  combination(arr, data, 0, n-1, 0, r, [])
+        winning_brawler_pairs = list(combinations(winning_team_brawlers, 2))
+        losing_brawler_pairs =  list(combinations(losing_team_brawlers, 2))
 
         for brawler_pair in winning_brawler_pairs:
+            brawler_pair = list(brawler_pair)
             brawler_pair.sort() #### Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
             brawler_a = Brawler.objects.get_or_update(brawler_name = brawler_pair[0])
             brawler_b = Brawler.objects.get_or_update(brawler_name = brawler_pair[1])
@@ -328,6 +313,7 @@ class ManageDB:
             synergy_instance.save()
         #could refactor into one function this and winning brawler scan
         for brawler_pair in losing_brawler_pairs:
+            brawler_pair = list(brawler_pair)
             brawler_pair.sort() #### Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
             brawler_a = Brawler.objects.get_or_update(brawler_name = brawler_pair[0])
             brawler_b = Brawler.objects.get_or_update(brawler_name = brawler_pair[1])
