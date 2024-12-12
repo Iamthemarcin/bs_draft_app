@@ -1,4 +1,4 @@
-version : '3.8'
+version: '3.8'
 
 services:
   django:
@@ -7,14 +7,13 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     volumes:
-      - "./bs_draft_app:/bs_draft_app"
+      - "./bs_draft_app:/bs_draft_app" # Ensure this doesn't override dependencies
     restart: unless-stopped
     ports:
       - 8001:8000
       - 3000:3000
-      - 5678:5678  # Debug port for debugpy
-    command: "python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"    #<---- for debugging the main process
-    #command: "python3 manage.py add_map_images"     #<---- for debugging admin commands
+      - 5678:5678 # Debug port for debugpy
+    command: "python3 -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000"
     env_file:
       - ./.env.dev
     depends_on:
@@ -33,19 +32,20 @@ services:
       - POSTGRES_USER=marcin
       - POSTGRES_PASSWORD=otyhaker
       - POSTGRES_DB=power_draft
-      
+
   cron:
     container_name: cron
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile-dev
     env_file:
-    - .env.dev
+      - .env.dev
     environment:
       - CRON=true
+      - DEBUGPY_DJANGO=False
     depends_on:
-    - db
-    command:  crond -f -l 2 # Keeps the container running
+      - db
+    command: python3 manage.py runserver 0.0.0.0:8000
 
 volumes:
   postgres-data:

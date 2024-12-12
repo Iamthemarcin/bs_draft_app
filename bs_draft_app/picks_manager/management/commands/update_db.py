@@ -3,12 +3,7 @@ from django.core.management.base import BaseCommand, CommandError
 from picks_manager.views import ManageDB
 from picks_manager.models import ScannedData
 
-try:
-    from silk.profiling.profiler import silk_profile
-except:
-    pass
 
-@silk_profile(name="Updating the Database")
 def update_db(scan_ammount):
     Manager = ManageDB()
     scanned_games = Manager.update_map_list_and_winrate(
@@ -25,7 +20,6 @@ class Command(BaseCommand):
     def add_arguments(self, parser):
         parser.add_argument("scan_ammount", type=int)
 
-    @silk_profile(name="Update Database")
     def handle(self, *args, **options):
         scan_ammount = options["scan_ammount"]
         update_db(scan_ammount)

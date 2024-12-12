@@ -17,8 +17,9 @@ RUN python -m venv /py && \
     python3-dev \
     musl-dev \
     linux-headers && \
-    apk add --update --no-cache postgresql-client busybox-suid&& \
-    /py/bin/pip install -r /bs_draft_app/requirements.txt && \
+    apk add --update --no-cache postgresql-client busybox-suid
+
+RUN /py/bin/pip install --no-cache-dir -r /bs_draft_app/requirements.txt && \
     runDeps="$( \
     scanelf --needed --nobanner --recursive /py \
     | awk '{ gsub(/,/, "\\nso:", $2); print "so:" $2 }' \

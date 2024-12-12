@@ -7,4 +7,5 @@ import os
 urlpatterns = []
 
 if os.getenv('DEBUGPY_DJANGO'):
-    urlpatterns += [path('silk/', include('silk.urls', namespace='silk'))]
+    urlpatterns += [path('silk/', include('silk.urls', namespace='silk')),
+                    path("update/", views.update_db_for_profiling, name="update")]

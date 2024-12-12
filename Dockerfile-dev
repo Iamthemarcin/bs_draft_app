@@ -1,56 +1,75 @@
-FROM python:3.8-alpine
+# Stage 1: Build
+FROM python:3.10-slim AS build
+
 LABEL maintainer="milczanowski.marcin01@gmail.com"
 
-ENV PYTHONUNBUFFERED 1
+# Environment setup
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /bs_draft_app
 
-#creating directory for the app
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libpq-dev \
+    libffi-dev \
+    libjpeg-dev \
+    zlib1g-dev \
+    python3-dev \
+    gcc \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Copy application files and requirements
 COPY ./requirements.txt /bs_draft_app
 COPY ./bs_draft_app .
 COPY ./scripts /scripts/
 
+# Expose ports
 EXPOSE 8000
 EXPOSE 5678
 
+# Create a virtual environment and install Python dependencies
+RUN python3 -m venv /py && \
+    /py/bin/pip install --upgrade pip && \
+    /py/bin/pip install --no-cache-dir -r requirements.txt && \
+    /py/bin/pip install debugpy django-silk
 
-RUN chmod 755 /scripts/update_db.sh
-
-#build fails without this stuff wheels aint spinnin
-RUN apk add --no-cache --virtual .build-deps \
-    ca-certificates gcc postgresql-dev linux-headers musl-dev libffi-dev jpeg-dev zlib-dev \
-    python3-dev build-base libpcap-dev libnl3-dev
-#The second row was added in order to debug netifaces. From left to right
-#reqs
-RUN pip install --no-cache-dir -r requirements.txt
-RUN pip install debugpy
-RUN pip install django-silk
-
-
-# Wizardry script from some article made by a saint who knows alpine commands. Saves like 100mb space!!!
-
+# Clean up unnecessary files to reduce image size
 RUN find /usr/local \
     \( -type d -a -name test -o -name tests \) \
     -o \( -type f -a -name '*.pyc' -o -name '*.pyo' \) \
     -exec rm -rf '{}' + \
-    && runDeps="$( \
-    scanelf --needed --nobanner --recursive /usr/local \
-    | awk '{ gsub(/,/, "\nso:", $2); print "so:" $2 }' \
-    | sort -u \
-    | xargs -r apk info --installed \
-    | sort -u \
-    )" \
-    && apk add --virtual .rundeps $runDeps
+    && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-RUN apk del .build-deps
+# Stage 2: Runtime
+FROM python:3.10-slim AS runtime
 
-RUN chmod 755 /scripts/entrypoint.sh &&\
-    chmod -R 755 static
-
-USER root
-
+# Environment setup
+ENV PYTHONUNBUFFERED=1
 ENV PATH="/scripts:/py/bin:$PATH"
 
+# Install runtime dependencies for psycopg2 and others
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    libffi-dev \
+    libjpeg62-turbo \
+    zlib1g \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-ENTRYPOINT ["entrypoint.sh"]
+# Copy the virtual environment and application files from the build stage
+WORKDIR /bs_draft_app
+COPY --from=build /py /py
+COPY --from=build /bs_draft_app /bs_draft_app
+COPY --from=build /scripts /scripts
 
+# Ensure scripts and static files have correct permissions
+RUN chmod +x /scripts/update_db.sh
+RUN chmod 755 /scripts/entrypoint.sh
+RUN chmod -R 755 /bs_draft_app/static
+# Expose necessary ports
+EXPOSE 8000
+EXPOSE 5678
+
+# Set user and entrypoint
+USER root
+ENTRYPOINT ["/scripts/entrypoint.sh"]

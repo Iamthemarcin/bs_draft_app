@@ -136,7 +136,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -145,13 +145,16 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 "-----------------------------------------------------------SILK STUFF------------------------------------------------------"
-SILKY_PYTHON_PROFILER = True
-SILKY_PYTHON_PROFILER_BINARY = True
+
 if not os.getenv('DEBUGPY_DJANGO'):
+    # a decorator that does nothing so silk doesnt crash the prod pog
     def silk_profile(*args, **kwargs):
         def no_op_decorator(func):
             return func
         return no_op_decorator
+
 if os.getenv('DEBUGPY_DJANGO'):
-    MIDDLEWARE += ['silk.middleware.SilkyMiddleware']
+    MIDDLEWARE.insert(0, 'silk.middleware.SilkyMiddleware')
     INSTALLED_APPS += ['silk']
+    SILKY_PYTHON_PROFILER = True
+    SILKY_PYTHON_PROFILER_BINARY = True
