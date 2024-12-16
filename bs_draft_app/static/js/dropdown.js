@@ -1,24 +1,24 @@
 
-function disp_dropdown(){
-    
+function disp_dropdown() {
+
     ammount_of_containers = $('.dropdown-content-container').length
     //depending on if there is 24 or 18 maps in the ranked season the width and height of container is bit diff
-    if (ammount_of_containers = 24){
+    if (ammount_of_containers = 24) {
         row = $('.dropdown-row')
-        row.css('height','924%')
+        row.css('height', '924%')
         $('.dropdown-content-container').css('height', '10.5%')
-        }
+    }
 
     var dropdown_elements = $('.dropdown>.row, #dropdown-search');
-    dropdown_elements.each(function(i,obj){
+    dropdown_elements.each(function (i, obj) {
         obj.classList.toggle('dropdown-content-display')
         //on pcs u want the focus to go on the searchbox, on phone its easier to just choose
         var w = window.innerWidth;
-        if (w > 1280){
+        if (w > 1280) {
             $('#dropdown-search').focus()
         }
         searchInput = $('#dropdown-search').val()
-        if (searchInput == ''){
+        if (searchInput == '') {
             $('br').removeClass('hide')
             $('.dropdown-col').removeClass('hide')
             $('.dropdown-content-container').removeClass('hide')
@@ -26,7 +26,7 @@ function disp_dropdown(){
 
     })
 
-    
+
 
 
 }
@@ -37,7 +37,7 @@ $('.dropdown-invis-btn').click(disp_dropdown)
 // column (theres 3) the string has been found. This column gets saved in cols_to_not_hide. After everything ends you
 // remove the hide class from the columns found in it. Documenting this just in case something is fucked and i miss the most obvious
 // fix in the world for two hours... again...
-function map_search(){
+function map_search() {
     maps = $('.dropdown-content-container')
     searchInput = $('#dropdown-search')
     filter = searchInput[0].value.toLowerCase()
@@ -50,7 +50,7 @@ function map_search(){
 
         col.addClass('hide')
 
-        if (map_name.includes(filter)){
+        if (map_name.includes(filter)) {
             map.classList.remove("hide")
             cols_to_not_hide.push(col) //its not unique but w/e
             $(this).siblings('br').addClass('hide')  //the break separates em modes nicely unless stuff gets hidden then its just weird go away baka
@@ -59,12 +59,12 @@ function map_search(){
     cols_to_not_hide.forEach(col => {
         col.removeClass('hide')
     })
-    if (filter == ''){ //if empty filter its better to have a break cuz it looks weird
+    if (filter == '') { //if empty filter its better to have a break cuz it looks weird
         $('br').removeClass('hide')
     }
 }
 
-function change_map(){
+function change_map() {
     //change map in frontend
     map_icon_src = $(this).children('.map-icon').children().attr("src")
     mode_name = $(this).children('.mode-name').text()
@@ -76,34 +76,38 @@ function change_map(){
     $('#current-map-name').text(map_name)
     $('#current-selected-map-clipped-bg').css("background-color", background_color) //cringe
     $('#dropdown-search').val('')
-    //disp_dropdown will remove all hide classes and inputs when the input val is nothing 
+    //disp_dropdown will remove all hide classes and inputs when the input val is nothing
     disp_dropdown()
 
     //get info bout the new map and change the top pick recommendations
     fetch("map_change", {
-    method: "POST",
-    headers: {
-        "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
-    },
-    body: JSON.stringify({
-        'map_name': map_name,
-    }),
+        method: "POST",
+        headers: {
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({
+            'map_name': map_name,
+        }),
     })
-    .then(response => response.json())
-    .then(data => {
-        data['brawlers'].forEach(function(brawler, i) {
-            $(`#brawler_name${i}`).text((i+1) + '. ' + brawler['brawler_name'])
-            $(`#win_rate${i}`).children('strong').text( brawler['win_rate'] + '%')
-            $(`#use_rate${i}`).children('strong').text(brawler['use_rate'] + '%')
-            $(`#viability${i}`).children('strong').text(brawler['viability'])
-            img_source_array = $(`#brawler_img${i}`).attr('src').toString().split("/")
-            img_source_array.pop()
-            img_source_array.push(`${brawler['brawler_name']}.png`)
-            new_source = img_source_array.join('/')
-            $(`#brawler_img${i}`).attr('src', new_source)
-        })
-        map_src = data['map_src']
-        $('#current-map-pic').attr('src', map_src)
-    });
+        .then(response => response.json())
+        .then(data => {
+            data['brawlers'].forEach(function (brawler, i) {
+                $(`#brawler_name${i}`).text((i + 1) + '. ' + brawler['brawler_name'])
+                if ($(`#brawler_name${i}`).prop('innerText').length > 12) {
+                    $(`#brawler_name${i}`).css("font-size", "0.9vw")
+                }
+
+                $(`#win_rate${i}`).children('strong').text(brawler['win_rate'] + '%')
+                $(`#use_rate${i}`).children('strong').text(brawler['use_rate'] + '%')
+                $(`#viability${i}`).children('strong').text(brawler['viability'])
+                img_source_array = $(`#brawler_img${i}`).attr('src').toString().split("/")
+                img_source_array.pop()
+                img_source_array.push(`${brawler['brawler_name']}.png`)
+                new_source = img_source_array.join('/')
+                $(`#brawler_img${i}`).attr('src', new_source)
+            })
+            map_src = data['map_src']
+            $('#current-map-pic').attr('src', map_src)
+        });
 }
 $('.dropdown-content').click(change_map)

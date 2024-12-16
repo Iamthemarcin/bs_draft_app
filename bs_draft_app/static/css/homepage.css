@@ -391,6 +391,10 @@ h5 {
     aspect-ratio: 1/1 !important;
 }
 
+.top-brawler-name {
+    font-size: 1vw;
+}
+
 .top-brawler:hover {
     cursor: pointer;
 }

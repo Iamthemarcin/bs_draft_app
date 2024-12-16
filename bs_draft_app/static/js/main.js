@@ -47,7 +47,17 @@ function change_font_size() {
     font_size = 1.75 - (9 / len) / 5
     map_name.css("font-size", `${font_size}vh`)
   }
+
+
+  best_brawler_names = $(".top-brawler-name")
+  for (let i = 0; i < best_brawler_names.length; i++) {
+    if ($(`#brawler_name${i}`).prop('innerText').length > 12) {
+      $(`#brawler_name${i}`).css("font-size", "0.9vw")
+    }
+  }
 }
+
+
 
 function brawler_search() {
   const brawlers = document.getElementsByClassName("brawler-img")
@@ -124,7 +134,6 @@ function choose_brawler(brawler) {
     pick_number--
   }
   retrieve_top_picks()
-
   pick_number++
 
   searchbox = document.querySelector("#search")
@@ -195,6 +204,11 @@ function retrieve_top_picks() {
     .then(data => {
       for (let i = 0; i < data.top_brawlers.length; i++) {
         $(`#brawler_name${i}`).text((i + 1) + '. ' + data.top_brawlers[i].brawler_name)
+        if ($(`#brawler_name${i}`).prop('innerText').length > 12) {
+          $(`#brawler_name${i}`).css("font-size", "0.9vw")
+        }
+
+
         $(`#win_rate${i}`).children('strong').text(data.top_brawlers[i].win_rate + '%')
         $(`#use_rate${i}`).children('strong').text(data.top_brawlers[i].use_rate + '%')
         $(`#viability${i}`).children('strong').text(data.top_brawlers[i].viability)

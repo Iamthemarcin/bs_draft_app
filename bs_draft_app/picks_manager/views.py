@@ -524,3 +524,4 @@ if os.getenv('DEBUGPY_DJANGO'):
             ManageDB().update_map_list_and_winrate(5, debug=True)
         # No swear words allowed even tho this is my private special place
         return HttpResponse(f'{request} Hello there you finally configured this sh%% ')
+

@@ -7,7 +7,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5004295321877954"
-     crossorigin="anonymous"></script>
+        crossorigin="anonymous"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.1.3/dist/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="{% static 'css/user-manual.css' %}">
     <link rel="stylesheet" href="{% static 'css/dropdown.css' %}">
     <link rel="stylesheet" href="{% static 'css/media-queries.css' %}">
-    
+
 
     <title> Brawl Draft </title>
 </head>
@@ -30,38 +30,46 @@
                 <img class='pl-logo' src="{% static 'images/pd_icon.svg' %}" alt="My image">
             </div>
             <div class="col3">
-                <h1 >Brawl Draft </h1>
+                <h1>Brawl Draft </h1>
             </div>
         </div>
         <div class="row align-items-center justify-content-md-center">
             <div class="draft-container background-black">
-                <div class = "manual"><img class="manual-icon" src="{% static 'images/manual-icon.svg' %}"> <p>USER MANUAL</p> </div>
+                <div class="manual"><img class="manual-icon" src="{% static 'images/manual-icon.svg' %}">
+                    <p>USER MANUAL</p>
+                </div>
                 <img class="reset-button" src="{% static 'images/reset.png' %}" onclick=reset_picks()>
                 <p class="reset-text"> R </p>
-                <!-- from what i understand in order to display over other elements the parent needs to be at least a sibling of the element displayed 
+                <!-- from what i understand in order to display over other elements the parent needs to be at least a sibling of the element displayed
                         on so i cant put my display list inside of the map container  -->
                 <input type="search-text " id="dropdown-search" onkeyup="map_search()" placeholder="Search for map">
                 </h3>
                 <div class="dropdown">
                     <div class="dropdown-invis-btn"></div>
-                    <div class = "map-manual" style="display: none">
-                        <img class = "map-selection-chatbox" src="{% static 'images/chatbox.png' %}">
-                        <div class = "manual-text"> <div style="text-align: center;">Welcome to Brawl Draft!</div>  
-                            First, select the map for which you'd like to see the list of optimal picks by clicking on the map container in the top left corner. </div>
+                    <div class="map-manual" style="display: none">
+                        <img class="map-selection-chatbox" src="{% static 'images/chatbox.png' %}">
+                        <div class="manual-text">
+                            <div style="text-align: center;">Welcome to Brawl Draft!</div>
+                            First, select the map for which you'd like to see the list of optimal picks by clicking on
+                            the map container in the top left corner.
+                        </div>
                     </div>
-                    <div class = "search-manual" style = "display: none">
-                        <img class = "search-manual-chatbox" src="{% static 'images/chatbox.png' %}">
-                        <div class = "manual-text"> After that, the picking phase will begin. Search for the brawler you wish to pick 
+                    <div class="search-manual" style="display: none">
+                        <img class="search-manual-chatbox" src="{% static 'images/chatbox.png' %}">
+                        <div class="manual-text"> After that, the picking phase will begin. Search for the brawler you
+                            wish to pick
                             for the next player and press enter or click on the brawler portrait to select it. </div>
                     </div>
-                    <div class = "top-picks-manual" style = "display: none">
-                        <img class = "top-picks-manual-chatbox" src="{% static 'images/chatbox.png' %}">
-                        <div class = "manual-text"> The "Top picks" section under the picks box shows the best brawlers to be picked by player currently
-                            highlighted with the rainbow border. The pick order is the same as in game.  </div>
+                    <div class="top-picks-manual" style="display: none">
+                        <img class="top-picks-manual-chatbox" src="{% static 'images/chatbox.png' %}">
+                        <div class="manual-text"> The "Top picks" section under the picks box shows the best brawlers to
+                            be picked by player currently
+                            highlighted with the rainbow border. The pick order is the same as in game. </div>
                     </div>
-                    <div class = "reset-manual" style = "display: none">
-                        <img class = "reset-manual-chatbox" src="{% static 'images/chatbox.png' %}">
-                        <div class = "manual-text"> If you wish to reset the pick phase you can either click on the reset icon, press R on your keyboard,
+                    <div class="reset-manual" style="display: none">
+                        <img class="reset-manual-chatbox" src="{% static 'images/chatbox.png' %}">
+                        <div class="manual-text"> If you wish to reset the pick phase you can either click on the reset
+                            icon, press R on your keyboard,
                             or pick all the brawlers and select another one. Happy picking! </div>
                     </div>
                     <div class="row dropdown-row">
@@ -70,7 +78,8 @@
                         <div class="col-4 dropdown-col">
                             {% for j in columns %}
 
-                            {% current_map maps i j as map %}  <!-- custom template tag. can find what it does exactly on lib/templatetags. just gets the current map -->
+                            {% current_map maps i j as map %}
+                            <!-- custom template tag. can find what it does exactly on lib/templatetags. just gets the current map -->
 
 
                             {% if forloop.counter0 == maps_per_column %}
@@ -103,7 +112,7 @@
                             <!-- this place is an unholy mess. I want the selected map to be clipped into a trapezoid shape, however
                                 this also clops its children. that means the map-info gets clipped. to prevent that i make this clipped-bg item, and set
                                 the background color to be clipped there. I do the same thing for the black rectangle, however there i can use the before
-                                to create pseudo element. Here i cant do this because i need to change the background color on map change. all in all this 
+                                to create pseudo element. Here i cant do this because i need to change the background color on map change. all in all this
                                 is all holding on glue. Dont get me started on the way i handle dropdown somewhere else by making an invis button
                                 because of all the clippath bullshit hiding the dropdown list elements otherwise. Its 2 am.
                                  -->
@@ -211,57 +220,60 @@
         {% if forloop.counter0|divisibleby:8 %}
 
         {% if not forloop.first %}
-        </div>
-        </div>
-        </div>
-        {% endif %}
-        <div class="row">
-            <div class="col-6">
-                <div class="row">
-                    <div class="col-3">
-                        <img onclick="choose_brawler(this)" class="mb-2 img-fluid top-brawler"
-                            id="brawler_img{{forloop.counter0}}"
-                            src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                        <h4 id="brawler_name{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
-                        <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
-                        <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
-                        <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
+    </div>
+    </div>
+    </div>
+    {% endif %}
+    <div class="row">
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3">
+                    <img onclick="choose_brawler(this)" class="mb-2 img-fluid top-brawler"
+                        id="brawler_img{{forloop.counter0}}"
+                        src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                    <h4 class="top-brawler-name" id="brawler_name{{forloop.counter0}}">{{forloop.counter}}.
+                        {{top_brawler.brawler_name}}</h4>
+                    <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
+                    <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
+                    <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
 
-                    </div>
-                    {% elif forloop.counter0|divisibleby:4 %}
                 </div>
-            </div>
-            <div class="col-6">
-                <div class="row">
-                    <div class="col-3">
-                        <img onclick="choose_brawler(this)" class=" top-brawler mb-2 img-fluid"
-                            id="brawler_img{{forloop.counter0}}"
-                            src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                        <h4 id="brawler_name{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
-                        <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
-                        <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
-                        <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
-                    </div>
-
-                    {% else %}
-
-                    <div class="col-3">
-                        <img onclick="choose_brawler(this)" class=" top-brawler mb-2 img-fluid"
-                            id="brawler_img{{forloop.counter0}}"
-                            src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
-                        <h4 id="brawler_name{{forloop.counter0}}">{{forloop.counter}}. {{top_brawler.brawler_name}}</h4>
-                        <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
-                        <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
-                        <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
-
-                    </div>
-                    {% endif %}
-                    {% if forloop.last %}
-                </div>
+                {% elif forloop.counter0|divisibleby:4 %}
             </div>
         </div>
-        {% endif %}
-        {% endfor %}
+        <div class="col-6">
+            <div class="row">
+                <div class="col-3">
+                    <img onclick="choose_brawler(this)" class=" top-brawler mb-2 img-fluid"
+                        id="brawler_img{{forloop.counter0}}"
+                        src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                    <h4 class="top-brawler-name" id="brawler_name{{forloop.counter0}}">{{forloop.counter}}.
+                        {{top_brawler.brawler_name}}</h4>
+                    <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
+                    <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
+                    <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
+                </div>
+
+                {% else %}
+
+                <div class="col-3">
+                    <img onclick="choose_brawler(this)" class=" top-brawler mb-2 img-fluid"
+                        id="brawler_img{{forloop.counter0}}"
+                        src="{{STATIC_URL}}/images/brawlers/{{top_brawler.brawler_name}}.png">
+                    <h4 class="top-brawler-name" id="brawler_name{{forloop.counter0}}">{{forloop.counter}}.
+                        {{top_brawler.brawler_name}}</h4>
+                    <h5 id="win_rate{{forloop.counter0}}">Win rate: <strong>{{top_brawler.win_rate}}%</strong></h5>
+                    <h5 id="use_rate{{forloop.counter0}}">Use rate: <strong>{{top_brawler.use_rate}}%</strong></h5>
+                    <h5 id="viability{{forloop.counter0}}">Viability: <strong>{{top_brawler.viability}}</strong></h5>
+
+                </div>
+                {% endif %}
+                {% if forloop.last %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
     </div>
     <footer>
         Contact info: dudududududux@gmail.com
