@@ -9,6 +9,8 @@ from django.templatetags.static import static
 from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead, Synergy
 from itertools import combinations
 import os
+import httpx
+import asyncio
 
 # Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
@@ -93,18 +95,9 @@ class ManageDB:
                 if counters not in brawler_class.countered_by:
                     brawler_class.countered_by += counters
                     brawler_class.save()
-        # crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
-        try:
-            crow = Brawler.objects.get(brawler_name="Crow")
-        except Brawler.DoesNotExist:
-            self.update_brawler_list()
-            crow = Brawler.objects.get(brawler_name="Crow")
-        support_class = BrawlerClass.objects.get(class_name="Support")
-        crow.brawler_class = support_class
-        crow.save()
 
-    @staticmethod
-    def update_brawler_list():
+
+    def update_brawler_list(self):
         # updating the brawlers properties based on api
         all_brawlers_request = requests.get(
             'https://api.brawlapi.com/v1/brawlers')
@@ -116,8 +109,13 @@ class ManageDB:
             rarity = brawler['rarity']['name']
             image_url = brawler['imageUrl']
             brawler_class = brawler['class']['name']
+            # Upcoming brawlers get labeled with Unknown class.
+            if brawler_class == 'Unknown':
+                continue
+
             brawler_class = BrawlerClass.objects.filter(
                 class_name=brawler_class)[0]
+
             brawler = Brawler(brawler_name=brawler_name, rarity=rarity,
                               image_url=image_url, brawler_class=brawler_class)
             brawler.save()
@@ -146,6 +144,15 @@ class ManageDB:
                 db_brawler.gem_carrier = gem_carrier
                 db_brawler.save()
             f.close()
+
+        # Crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
+        crow = Brawler.objects.get(brawler_name="Crow")
+        try: support_class = BrawlerClass.objects.get(class_name="Support")
+        except BrawlerClass.DoesNotExist:
+            self.update_brawler_classes()
+
+        crow.brawler_class = support_class
+        crow.save()
 
     # use this after updating maps and cleaning maps, at least 1k battlelogs.
     def update_modes(self):
@@ -439,9 +446,28 @@ class ManageDB:
         result = ' '.join(words)
         return result
 
+
+    async def test_wait(self, timey_winey):
+        print("There should be 25 prints if nothing is crazy yeah (yeah)")
+        await asyncio.sleep(timey_winey)
+
+    async def fetch_player_data(self, players):
+
+        all_tasks = set()
+        async with asyncio.TaskGroup() as tg:
+            for player in players:
+                task = asyncio.create_task(self.test_wait(1))
+                all_tasks.add(task)
+                task.add_done_callback(all_tasks.discard)
+
+        print("These are the players: ", players)
+
+
+
+
+
     # This function populates the database with maps
     def update_map_list_and_winrate(self, ammount_of_battlelogs, debug=False):
-
         # I only want to send ammount_of_battlelogs requests per map update call
         try:
             player_num_object = ScannedData.objects.first()

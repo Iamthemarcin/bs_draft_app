@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM python:3.10-slim AS build
+FROM python:3.11-slim AS build
 
 LABEL maintainer="milczanowski.marcin01@gmail.com"
 
@@ -42,7 +42,7 @@ RUN find /usr/local \
     && apt-get autoremove -y && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Stage 2: Runtime
-FROM python:3.10-slim AS runtime
+FROM python:3.11-slim AS runtime
 
 # Environment setup
 ENV PYTHONUNBUFFERED=1

@@ -1,9 +1,11 @@
 from django.test import TestCase
 from picks_manager.views import ManageDB
-from picks_manager.models import Player, WinRate, Map, HeadToHead, Brawler, Synergy
+from picks_manager.models import Player, WinRate, Map, HeadToHead, Brawler, Synergy, BrawlerClass
 from functools import wraps
+import requests
 import datetime
 import time
+import asyncio
 
 # Create your tests here.
 
@@ -73,8 +75,7 @@ class TestWinRatesCollection(TestCase):
         winning_team = [{'tag': '#PU00QLLV0', 'name': 'ズラタンイブラヒモビッチ', 'brawler': {'id': 16000085, 'name': 'KENJI', 'power': 11, 'trophies': 1014}}, {'tag': '#2Y9QRCQL', 'name': '겨링겨링', 'brawler': {'id': 16000084, 'name': 'MOE', 'power': 11, 'trophies': 1030}}, {'tag': '#8CL998GVY', 'name': 'みず💧', 'brawler': {'id': 16000038, 'name': 'PAM', 'power': 11, 'trophies': 925}}]
         losing_team = [{'tag': '#PRQULYG9J', 'name': 'Thə Łúcifer惡😈', 'brawler': {'id': 16000025, 'name': 'TICK', 'power': 11, 'trophies': 991}}, {'tag': '#YYYYJUP9', 'name': '鬥士', 'brawler': {'id': 16000085, 'name': 'EDGAR', 'power': 11, 'trophies': 1029}}, {'tag': '#P2L2LUVPV', 'name': 'Q娃', 'brawler': {'id': 16000020, 'name': 'FRANK', 'power': 11, 'trophies': 1011}}]
         db_map = Map.objects.first()
-        m = ManageDB()
-        m.update_synergies(winning_team, losing_team, db_map)
+        ManageDB().update_synergies(winning_team, losing_team, db_map)
         # alphabetical order, brawler a < brawler b
         brawler_a = Brawler.objects.get_or_update(brawler_name="Moe")
         brawler_b = Brawler.objects.get_or_update(brawler_name="Pam")
@@ -86,6 +87,24 @@ class TestWinRatesCollection(TestCase):
     def test_updating_the_database(self):
         ManageDB().update_map_list_and_winrate(1, debug = True)
 
+    def test_fetching_player_data(self):
+        m = ManageDB()
+        top_players = requests.get(
+            f'https://api.brawlstars.com/v1/rankings/PL/players', m.headers)
+
+        top_players = top_players.json()
+        top_players_tags = []
+        m.search_response(top_players, 'tag', None, top_players_tags)
+
+        for player_tag in top_players_tags:
+            db_player_tag = Player(player_tag=player_tag)
+            if not Player.objects.filter(player_tag=player_tag).exists():
+                d = datetime.datetime.today() - datetime.timedelta(days=4)
+                db_player_tag.last_checked = d
+                db_player_tag.save()
+        # gotta convert this to a list since django all objects are lazy, so iterating over em will break async
+        players = list(Player.objects.all()[0:25])
+        asyncio.run(m.fetch_player_data(players))
 
 
 example_piece_of_response_data = {
