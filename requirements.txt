@@ -10,7 +10,7 @@ reportlab
 #pycups
 Pillow
 netifaces
-httpx
+aiohttp
 
 #STUFF THAT BEHAVES WELL AND IS NICE
 bcrypt==3.2.0

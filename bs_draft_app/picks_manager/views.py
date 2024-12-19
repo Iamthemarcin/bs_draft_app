@@ -9,8 +9,9 @@ from django.templatetags.static import static
 from .models import Map, Mode, Player, ScannedData, Brawler, WinRate, BrawlerClass, HeadToHead, Synergy
 from itertools import combinations
 import os
-import httpx
 import asyncio
+import aiohttp
+
 
 # Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
@@ -447,24 +448,33 @@ class ManageDB:
         return result
 
 
-    async def test_wait(self, timey_winey):
-        print("There should be 25 prints if nothing is crazy yeah (yeah)")
-        await asyncio.sleep(timey_winey)
-
-    async def fetch_player_data(self, players):
-
-        all_tasks = set()
-        async with asyncio.TaskGroup() as tg:
-            for player in players:
-                task = asyncio.create_task(self.test_wait(1))
-                all_tasks.add(task)
-                task.add_done_callback(all_tasks.discard)
-
-        print("These are the players: ", players)
+    # Async logic taken from https://www.calybre.global/post/asynchronous-api-calls-in-python-with-asyncio
+    # Asynchronous function to fetch data from a given URL using aiohttp
+    async def fetch_player_data(self, session, url):
+        # Use 'session.get()' to make an asynchronous HTTP GET request
+        async with session.get(url, headers = self.headers) as response:
+            # Return the JSON content of the response using 'response.json()'
+            return await response.json()
 
 
+    async def fetch_all_players_data(self, players):
+        # List of URLs to fetch data from
+        urls = []
+        for player in players:
+            player_tag_link = player.player_tag.replace('#', '')
+            urls += ['https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(
+                player_tag_link)]
 
+        # Create an aiohttp ClientSession for making asynchronous HTTP requests
+        async with aiohttp.ClientSession() as session:
+            # Create a list of tasks, where each task is a call to 'fetch_data' with a specific URL
+            tasks = [self.fetch_player_data(session, url) for url in urls]
 
+            # Use 'asyncio.gather()' to run the tasks concurrently and gather their results
+            results = await asyncio.gather(*tasks)
+
+        # Print the results obtained from fetching data from each URL
+        return results
 
     # This function populates the database with maps
     def update_map_list_and_winrate(self, ammount_of_battlelogs, debug=False):
@@ -482,34 +492,20 @@ class ManageDB:
         if player_num > player_ammount - ammount_of_battlelogs:
             player_num = 0
 
-        players = Player.objects.all(
-        )[player_num:player_num+ammount_of_battlelogs]
+        players = list(Player.objects.all(
+        )[player_num:player_num+ammount_of_battlelogs])
         player_num_object.last_player_checked = player_num + ammount_of_battlelogs
         player_num_object.save()
 
-        if ScannedData.objects.all().count() > 1:
+        if ScannedData.objects.count() > 1:
             # im manipulating the pk here which i shouldnt do but whatever. just delete the old object
-            ScannedData.objects.first().delete()
+            ScannedData.objects.exclude(pk=player_num_object.pk).delete()
 
         # retrieve last games from players
-        for player in players:
-            player_tag = player.player_tag
-            date = datetime.date.today()
-            player.last_checked = date
-            player.save()
-            player_tag_link = player_tag.replace('#', '')
-            request_link = 'https://api.brawlstars.com/v1/players/%23{}/battlelog'.format(
-                player_tag_link)
-            try:
-                all_games = requests.get(request_link, self.headers, timeout=2)
-            except requests.exceptions.RequestException as e:
-                print(
-                    f"Error fetching the game data from player {player}. Fix it one day maybe. No clue what causes it yet, setting bigger timeout helps a lot tho.")
-                print(e)
-                continue
-
-            all_games = all_games.json()
-            self.look_for_ranked_games(all_games, player, debug=debug)
+        all_games = asyncio.run(self.fetch_all_players_data(players))
+        for i, game in enumerate(all_games):
+            player = players[i]
+            self.look_for_ranked_games(game, player, debug=debug)
 
         return self.i
 

@@ -85,7 +85,7 @@ class TestWinRatesCollection(TestCase):
 
     @timer
     def test_updating_the_database(self):
-        ManageDB().update_map_list_and_winrate(1, debug = True)
+        ManageDB().update_map_list_and_winrate(50, debug = True)
 
     def test_fetching_player_data(self):
         m = ManageDB()
@@ -104,8 +104,8 @@ class TestWinRatesCollection(TestCase):
                 db_player_tag.save()
         # gotta convert this to a list since django all objects are lazy, so iterating over em will break async
         players = list(Player.objects.all()[0:25])
-        asyncio.run(m.fetch_player_data(players))
-
+        results = asyncio.run(m.fetch_all_players_data(players))
+        self.assertTrue(results)
 
 example_piece_of_response_data = {
     "items": [
