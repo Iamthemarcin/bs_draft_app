@@ -11,6 +11,7 @@ from itertools import combinations
 import os
 import asyncio
 import aiohttp
+from contextlib import contextmanager
 
 
 # Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
@@ -23,6 +24,27 @@ import aiohttp
 2. update modes <- do this when icon missing
 2. update map pics <- this comes from different API than battlelogs, i dont want to put more calls into wr function since i use it the most and its a clusterf already
 """
+
+
+# This stuff is used in the update_map_list_and_win_rate function. Handles prefetching and saving bulk data.
+@contextmanager
+def pre_fetch_context():
+    pre_fetched_objects = {}
+    # Evaluate all the brawlers into a dictionary
+    pre_fetched_objects['brawlers'] = {b.brawler_name.lower(): b for b in Brawler.objects.all()}
+    try:
+        yield pre_fetched_objects  # Access pre_fetched_objects outside the context manager
+    finally:
+        # Cleanup/Teardown after the yield
+        print("The database has been updated")
+
+
+def pre_fetch_decorator(func):
+    def wrapper(*args, **kwargs):
+
+        with pre_fetch_context() as pre_fetched_objects:
+            return func(*args, pre_fetched_objects = pre_fetched_objects, **kwargs)
+    return wrapper
 
 
 # updating what kinda modes there are in powerleague.
@@ -97,7 +119,6 @@ class ManageDB:
                     brawler_class.countered_by += counters
                     brawler_class.save()
 
-
     def update_brawler_list(self):
         # updating the brawlers properties based on api
         all_brawlers_request = requests.get(
@@ -148,7 +169,8 @@ class ManageDB:
 
         # Crow being an (according to supercells db) assasin is very counterintuitive, he's more of a support.
         crow = Brawler.objects.get(brawler_name="Crow")
-        try: support_class = BrawlerClass.objects.get(class_name="Support")
+        try:
+            support_class = BrawlerClass.objects.get(class_name="Support")
         except BrawlerClass.DoesNotExist:
             self.update_brawler_classes()
 
@@ -241,13 +263,13 @@ class ManageDB:
                     db_player_tag.save()
         return
 
-    def update_win_rate(self, player_tag, result, teams, map):
+    def update_win_rate(self, player_tag, result, teams, map,  pre_fetched_objects={}):
         player_team = 1
         team_0_brawlers = []
 
         # find which team our player was a part of
         for player in teams[0]:
-            team_0_brawlers.append(player['brawler']['name'])
+            team_0_brawlers.append(player['brawler']['name'].lower())
             if player['tag'] == player_tag:
                 player_team = 0
 
@@ -257,12 +279,12 @@ class ManageDB:
             winning_team = 1 - player_team
 
         self.update_head_to_head_scores(
-            teams[winning_team], teams[1 - winning_team], map)
+            teams[winning_team], teams[1 - winning_team], map, pre_fetched_objects=pre_fetched_objects)
         self.update_synergies(teams[winning_team],
-                              teams[1 - winning_team], map)
+                              teams[1 - winning_team], map, pre_fetched_objects=pre_fetched_objects)
         for player in teams[winning_team]:
-            brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get_or_update(brawler_name)
+            brawler_name = player['brawler']['name'].lower()
+            brawler = pre_fetched_objects.get('brawlers', {}).get(brawler_name) or  Brawler.objects.get(brawler_name__iexact=brawler_name)
 
             try:
                 wr_obj = WinRate.objects.get(
@@ -275,9 +297,8 @@ class ManageDB:
                         games_won=1, use_rate=1/map.games_played).save()
 
         for player in teams[1-winning_team]:
-            brawler_name = player['brawler']['name']
-            brawler = Brawler.objects.get_or_update(brawler_name)
-
+            brawler_name = player['brawler']['name'].lower()
+            brawler = pre_fetched_objects.get('brawlers', {}).get(brawler_name) or  Brawler.objects.get(brawler_name__iexact=brawler_name)
             try:
                 wr_obj = WinRate.objects.get(
                     brawler_name=brawler, map_name=map)
@@ -288,13 +309,13 @@ class ManageDB:
                         games_won=0, use_rate=1/map.games_played).save()
         return
 
-    def update_head_to_head_scores(self, winning_team, losing_team, map):
+    def update_head_to_head_scores(self, winning_team, losing_team, map,  pre_fetched_objects={}):
         for winner in winning_team:
-            winning_brawler = winner['brawler']['name']
-            winning_brawler = Brawler.objects.get_or_update(winning_brawler)
+            winning_brawler = winner['brawler']['name'].lower()
+            winning_brawler = pre_fetched_objects.get('brawlers', {}).get(winning_brawler) or  Brawler.objects.get(brawler_name__iexact=winning_brawler)
             for loser in losing_team:
-                losing_brawler = loser['brawler']['name']
-                losing_brawler = Brawler.objects.get_or_update(losing_brawler)
+                losing_brawler = loser['brawler']['name'].lower()
+                losing_brawler = pre_fetched_objects.get('brawlers', {}).get(losing_brawler) or  Brawler.objects.get(brawler_name__iexact=losing_brawler)
                 matches_won_by_a = 1
                 brawlers = [winning_brawler, losing_brawler]
                 if winning_brawler.brawler_name > losing_brawler.brawler_name:
@@ -313,16 +334,15 @@ class ManageDB:
                         brawler_a=brawlers[0], brawler_b=brawlers[1], map=map, matches_played=1, matches_won_by_a=matches_won_by_a)
                     head_to_head.save()
 
-    def update_synergies(self, winning_team, losing_team, map):
-
+    def update_synergies(self, winning_team, losing_team, map,  pre_fetched_objects={}):
         winning_team_brawlers = []
         for winner in winning_team:
-            winning_brawler = winner['brawler']['name']
+            winning_brawler = winner['brawler']['name'].lower()
             winning_team_brawlers.append(winning_brawler)
 
         losing_team_brawlers = []
         for loser in losing_team:
-            losing_brawler = loser['brawler']['name']
+            losing_brawler = loser['brawler']['name'].lower()
             losing_team_brawlers.append(losing_brawler)
 
         winning_brawler_pairs = list(combinations(winning_team_brawlers, 2))
@@ -331,10 +351,10 @@ class ManageDB:
         for brawler_pair in winning_brawler_pairs:
             brawler_pair = list(brawler_pair)
             brawler_pair.sort()  # Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
-            brawler_a = Brawler.objects.get_or_update(
-                brawler_name=brawler_pair[0])
-            brawler_b = Brawler.objects.get_or_update(
-                brawler_name=brawler_pair[1])
+
+            # Either get the brawler from pre fetched objects or get it from DB if it wasnt fetched
+            brawler_a = pre_fetched_objects.get('brawlers', {}).get(brawler_pair[0]) or  Brawler.objects.get(brawler_name__iexact=brawler_pair[0])
+            brawler_b = pre_fetched_objects.get('brawlers', {}).get(brawler_pair[1]) or  Brawler.objects.get(brawler_name__iexact=brawler_pair[1])
             try:
                 synergy_instance = Synergy.objects.get(
                     brawler_a=brawler_a, brawler_b=brawler_b, map=map)
@@ -348,10 +368,9 @@ class ManageDB:
         for brawler_pair in losing_brawler_pairs:
             brawler_pair = list(brawler_pair)
             brawler_pair.sort()  # Everytime you want to get an synergy or h2h object, you need brawler_a to be alphabetically before brawler_b
-            brawler_a = Brawler.objects.get_or_update(
-                brawler_name=brawler_pair[0])
-            brawler_b = Brawler.objects.get_or_update(
-                brawler_name=brawler_pair[1])
+
+            brawler_a = pre_fetched_objects.get('brawlers', {}).get(brawler_pair[0]) or  Brawler.objects.get(brawler_name__iexact=brawler_pair[0])
+            brawler_b = pre_fetched_objects.get('brawlers', {}).get(brawler_pair[1]) or  Brawler.objects.get(brawler_name__iexact=brawler_pair[1])
             try:
                 synergy_instance = Synergy.objects.get(
                     brawler_a=brawler_a, brawler_b=brawler_b, map=map)
@@ -362,8 +381,7 @@ class ManageDB:
             synergy_instance.save()
 
     # helper function, used in updating the winrate.
-    def look_for_ranked_games(self, game_data, player, debug=False):
-
+    def look_for_ranked_games(self, game_data, player, debug=False,  pre_fetched_objects={}):
         player_tag = player.player_tag
         if not 'items' in game_data:
             print("No games retrieved" + str(game_data))
@@ -387,6 +405,10 @@ class ManageDB:
                 except KeyError:  # older gamemodes data have diff datastructure, just ignore it, not in ranked anyways lol.
                     continue
                 if battle_type == 'soloRanked' or battle_type == 'teamRanked':  # i've seen all of these somehow
+
+                    # Debugging stuff
+                    if debug and self.i >= 25:
+                        return self.i
                     self.i += 1
                     if self.i % 10 == 0:
                         print(str(self.i) + " ranked games have been checked")
@@ -433,7 +455,8 @@ class ManageDB:
                     # this part is for wr calcualting, wasnt planning on it being here but here we are
                     result = battles['battle']['result']
                     teams = battles['battle']['teams']
-                    self.update_win_rate(player_tag, result, teams, db_map)
+                    self.update_win_rate(
+                        player_tag, result, teams, db_map,  pre_fetched_objects=pre_fetched_objects)
         return
 
     def camel_case_to_normal(self, s):
@@ -447,15 +470,14 @@ class ManageDB:
         result = ' '.join(words)
         return result
 
-
     # Async logic taken from https://www.calybre.global/post/asynchronous-api-calls-in-python-with-asyncio
     # Asynchronous function to fetch data from a given URL using aiohttp
+
     async def fetch_player_data(self, session, url):
         # Use 'session.get()' to make an asynchronous HTTP GET request
-        async with session.get(url, headers = self.headers) as response:
+        async with session.get(url, headers=self.headers) as response:
             # Return the JSON content of the response using 'response.json()'
             return await response.json()
-
 
     async def fetch_all_players_data(self, players):
         # List of URLs to fetch data from
@@ -477,7 +499,9 @@ class ManageDB:
         return results
 
     # This function populates the database with maps
-    def update_map_list_and_winrate(self, ammount_of_battlelogs, debug=False):
+    # The amount of games during debug has been reduced to 25 for now, check  look_for_ranked_games
+    @pre_fetch_decorator
+    def update_map_list_and_winrate(self, ammount_of_battlelogs, debug=False, pre_fetched_objects={}):
         # I only want to send ammount_of_battlelogs requests per map update call
         try:
             player_num_object = ScannedData.objects.first()
@@ -505,7 +529,8 @@ class ManageDB:
         all_games = asyncio.run(self.fetch_all_players_data(players))
         for i, game in enumerate(all_games):
             player = players[i]
-            self.look_for_ranked_games(game, player, debug=debug)
+            self.look_for_ranked_games(
+                game, player, debug=debug, pre_fetched_objects=pre_fetched_objects)
 
         return self.i
 
@@ -543,7 +568,7 @@ if os.getenv('DEBUGPY_DJANGO'):
 
     def update_db_for_profiling(request):
         with silk_profile(name='update db'):
-            ManageDB().update_map_list_and_winrate(5, debug=True)
+            scanned_games = ManageDB().update_map_list_and_winrate(
+                30, debug=True)
         # No swear words allowed even tho this is my private special place
-        return HttpResponse(f'{request} Hello there you finally configured this sh%% ')
-
+        return HttpResponse(f'{request} Hello there you finally configured this sh%%. Scanned {scanned_games} games btw ')
