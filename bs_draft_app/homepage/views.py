@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
 import os
 import random
 import json
@@ -226,7 +228,7 @@ def index(request):
     val = URLValidator()
     try:
         val(map_icon_link)
-    except AttributeError:
+    except ValidationError:
         ManageDB().update_map_pics()
 
     # choose the 16 brawlers most suitable for the map. viability is calculated by multiplying winrate and userate on the current map
@@ -243,7 +245,7 @@ def map_change(request):
     val = URLValidator()
     try:
         val(chosen_map.image_url)
-    except AttributeError:
+    except ValidationError:
         ManageDB().update_map_pics()
 
     top_brawlers = get_top_brawlers(chosen_map.map_name, 16)
