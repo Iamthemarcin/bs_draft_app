@@ -25,7 +25,7 @@ class WinRateAdmin(admin.ModelAdmin):
 
 @admin.register(HeadToHead)
 class HeadToHeadAdmin(admin.ModelAdmin):
-    list_display = ('brawler_a', 'brawler_b', 'map', 'matches_played', 'win_rate_a')
+    list_display = ('brawler_a', 'brawler_b', 'map_name', 'matches_played', 'win_rate_a')
     list_filter = ('brawler_a', 'brawler_b')
     ordering = ['brawler_a__brawler_name']
 

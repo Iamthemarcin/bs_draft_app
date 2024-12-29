@@ -19,7 +19,7 @@ class Mode(models.Model):
     def __str__(self):
         return self.mode_name
     class Meta:
-        app_label = 'picks_manager'    
+        app_label = 'picks_manager'
 
 class Map(models.Model):
     map_name = models.CharField(max_length = 30)
@@ -61,7 +61,7 @@ class BrawlerManager(models.Manager):
             except Brawler.DoesNotExist:
                 print(f"{brawler_name} still not found after update.")
                 return None
-            
+
 
 class Brawler(models.Model):
 
@@ -104,11 +104,11 @@ class WinRateQuerySet(models.QuerySet):
         ayaya = self.annotate(viability = ExpressionWrapper(F('games_won')*Decimal('1.75')/(F('games_played')) + F('use_rate'),output_field = FloatField())).filter(games_won__gt = 10) ##if less than 10 games i dont care bout u sorry mr object.
         return ayaya
 
-    
+
 class WinRate(models.Model):
     class Meta:
         unique_together = (('brawler_name', 'map_name'),)
-        ordering = ['brawler_name__brawler_name']  
+        ordering = ['brawler_name__brawler_name']
 
     id = models.AutoField(primary_key=True)
     brawler_name = models.ForeignKey(Brawler, on_delete = models.CASCADE)
@@ -119,7 +119,7 @@ class WinRate(models.Model):
     objects = WinRateQuerySet.as_manager()
     def __str__(self):
         return self.map_name.map_name + ', ' + self.brawler_name.brawler_name
-    
+
 class WinRateSerializer(serializers.Serializer):
     brawler_name = serializers.CharField(max_length = 30)
     use_rate = serializers.FloatField()
@@ -141,15 +141,15 @@ class HeadToHead(models.Model):
 
     brawler_a = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="head_to_head_a")
     brawler_b = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="head_to_head_b")
-    
-    map = models.ForeignKey(Map, on_delete= models.CASCADE)  
+
+    map_name = models.ForeignKey(Map, on_delete= models.CASCADE)
     matches_played = models.PositiveIntegerField(default=0)
     matches_won_by_a = models.PositiveIntegerField(default=0)
-    win_rate_a = models.FloatField(default=0.0) 
-    
+    win_rate_a = models.FloatField(default=0.0)
+
 
     class Meta:
-        unique_together = ('brawler_a', 'brawler_b', 'map')
+        unique_together = ('brawler_a', 'brawler_b', 'map_name')
 
     def save(self, *args, **kwargs):
         ##if i already have colt vs shelly in database, i dont want to save shelly vs colt in a different field
@@ -168,12 +168,12 @@ class HeadToHead(models.Model):
 class Synergy(models.Model):
     brawler_a = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="synergy_a")
     brawler_b = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="synergy_b")
-    
-    map = models.ForeignKey(Map, on_delete= models.CASCADE)  
+
+    map = models.ForeignKey(Map, on_delete= models.CASCADE)
     matches_played = models.PositiveIntegerField(default=0)
     matches_won = models.PositiveIntegerField(default=0)
     win_rate_together = models.FloatField(default=0.0)
-    
+
     class Meta:
         unique_together = ('brawler_a', 'brawler_b', 'map')
         verbose_name_plural = "Synergies"

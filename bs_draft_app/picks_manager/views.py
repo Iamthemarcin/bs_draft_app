@@ -324,14 +324,14 @@ class ManageDB:
                 try:
                     # left brawler always needs to be smaller than right alphabetically
                     head_to_head = HeadToHead.objects.get(
-                        brawler_a=brawlers[0], brawler_b=brawlers[1], map=map)
+                        brawler_a=brawlers[0], brawler_b=brawlers[1], map_name=map)
                     head_to_head.matches_played += 1
                     head_to_head.matches_won_by_a += matches_won_by_a
                     head_to_head.save()
                 except:
 
                     head_to_head = HeadToHead(
-                        brawler_a=brawlers[0], brawler_b=brawlers[1], map=map, matches_played=1, matches_won_by_a=matches_won_by_a)
+                        brawler_a=brawlers[0], brawler_b=brawlers[1], map_name=map, matches_played=1, matches_won_by_a=matches_won_by_a)
                     head_to_head.save()
 
     def update_synergies(self, winning_team, losing_team, map,  pre_fetched_objects={}):
