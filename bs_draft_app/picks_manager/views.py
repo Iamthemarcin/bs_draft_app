@@ -395,7 +395,7 @@ class ManageDB:
         game_time = datetime.date(year=year, month=month, day=day)
         time_delta = game_time - player.last_checked
         if time_delta.days < 2 and not debug:  # for debug stuff i want to check the game anyways
-            print(game_time, player.last_checked, time_delta)
+            #print(game_time, player.last_checked, time_delta)
             return
 
         for battles in game_data['items']:

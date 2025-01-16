@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
+import sys
 import os
 import random
 import json
@@ -94,6 +95,8 @@ def divide_into_teams(picked_brawlers):
     return players_team, enemy_team
 
 # function respoinsible for calculating which brawlers to suggest
+
+
 def get_top_brawlers(map, ammount, picked_brawlers=None):
     curr_map = Map.objects.get(map_name=map)
     curr_map_mode = str(curr_map.mode_name)
@@ -207,37 +210,57 @@ def get_top_brawlers(map, ammount, picked_brawlers=None):
     return top_brawlers[:16]
 
 
-def calculate_counter_score(win_rate,head_to_heads):
+def calculate_counter_score(top_brawler, enemy_team, curr_map):
     """Calculate counter score for every pre selected top brawler based on picked enemy brawlers"""
+    top_brawler_name = str(top_brawler.brawler_name)
+    counter_score = 0
+    for enemy_brawler_name in enemy_team:
+        if top_brawler_name < enemy_brawler_name:
+            pair = [top_brawler_name, enemy_brawler_name]
+            shuffled = 0
+        else:
+            pair = [enemy_brawler_name, top_brawler_name]
+            shuffled = 1
+
+        try:
+            h2h = HeadToHead.objects.get(
+                brawler_a=pair[0], brawler_b=pair[1], map_name=curr_map)
+        except HeadToHead.DoesNotExist:
+            continue
+        average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
+        head_to_head_win_rate = h2h.win_rate_a if not shuffled else 1 - h2h.win_rate_a
+        counter_score += head_to_head_win_rate - average_win_rate_on_map
+
+    return counter_score
 
 
-    pass
+def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
 
-def get_top_brawlers_regression(map, ammount, picked_brawlers = None):
     curr_map = Map.objects.get(map_name=map)
     curr_map_mode = str(curr_map.mode_name)
     all_brawlers = {b.brawler_name.lower(): b for b in Brawler.objects.all()}
 
+    # THIS PART JUST CHECKS ALL THE BRAWLERS AND SETS VIABILITY BASED ON THEIR ATTRIBUTES
     if not picked_brawlers:
         top_brawlers = WinRate.objects.filter(
-            map_name__map_name=map).calc_viability().order_by('-viability')[:ammount]
+            map_name=curr_map).calc_viability().order_by('-viability')[:ammount]
         check_counterability_and_pick_rate(top_brawlers, picked_brawlers)
         if curr_map_mode == "Gem Grab":
             gem_grab_update_viability(top_brawlers)
+
         top_brawlers = sorted(
             top_brawlers, key=lambda o: o.viability, reverse=True)
+
+    # THIS PART IS BASED ON REGRESSION LOGIC
     else:
         players_team, enemy_team = divide_into_teams(picked_brawlers)
         top_brawlers = WinRate.objects.filter(map_name__map_name=map).calc_viability().order_by('-viability').exclude(
             brawler_name__in=picked_brawlers)[:ammount*3]  # map_name is foreign key to map object which has a map_name attr GET PRANKED myself
-        # What I need here is all head to heads with correct map, where
+        # What I need here is all head to heads with correct map. Top brawler is a WinRate object.
         for top_brawler in top_brawlers:
-            pairs = []
-            for enemy_brawler in enemy_team:
-                pairs.append([top_brawler.brawler_name,enemy_brawler].sort())
-            print(pairs)
-            h2h = HeadToHead.objects.filter()
-            calculate_counter_score(top_brawler, 15)
+            top_brawler.counter_score = calculate_counter_score(top_brawler, enemy_team, curr_map)
+        for top_brawler in top_brawlers:
+            print(top_brawler.brawler_name, top_brawler.counter_score)
 
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100, 2)
@@ -245,8 +268,9 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers = None):
             top_brawler.games_won * 100/top_brawler.games_played, 2)
         top_brawler.viability = round(top_brawler.viability, 2)
 
-    #calculate_counter_score(WinRate, HeadToHeads)
-    pass
+    return top_brawlers[:16]
+
+
 # renders the page
 
 def index(request):
@@ -276,7 +300,7 @@ def index(request):
     top_brawlers = get_top_brawlers(chosen_map, 16)
     top_brawlers_regression = get_top_brawlers_regression(chosen_map, 16)
     context = {'top_row': top_row, 'bottom_row': bottom_row, 'mode_icon_link': mode_icon_link, 'maps': maps,
-               'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers, 'maps_per_column': maps_per_column,
+               'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers_regression, 'maps_per_column': maps_per_column,
                'columns': columns}
     return render(request, "homepage.html", context)
 
@@ -303,7 +327,8 @@ def brawler_pick(request):
     picked_brawlers = list(brawler_data.values())
     top_brawlers = get_top_brawlers(
         map_name, 16, picked_brawlers=picked_brawlers)
-    top_brawlers_regression = get_top_brawlers_regression(map_name, 16, picked_brawlers=picked_brawlers)
+    top_brawlers_regression = get_top_brawlers_regression(
+        map_name, 16, picked_brawlers=picked_brawlers)
 
     top_brawlers_serializer = WinRateSerializer(top_brawlers, many=True)
 

@@ -66,6 +66,7 @@ COPY --from=build /scripts /scripts
 RUN chmod +x /scripts/update_db.sh
 RUN chmod 755 /scripts/entrypoint.sh
 RUN chmod -R 755 /bs_draft_app/static
+
 # Expose necessary ports
 EXPOSE 8000
 EXPOSE 5678

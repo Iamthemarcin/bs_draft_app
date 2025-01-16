@@ -163,7 +163,7 @@ class HeadToHead(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.brawler_a} vs {self.brawler_b} (Map: {self.map}, Mode: {self.map.mode_name})"
+        return f"{self.brawler_a} vs {self.brawler_b} (Map: {self.map_name}, Mode: {self.map_name.mode_name})"
 
 class Synergy(models.Model):
     brawler_a = models.ForeignKey(Brawler, on_delete= models.CASCADE, related_name="synergy_a")
