@@ -1,6 +1,7 @@
 from django.test import TestCase
-from picks_manager.models import Map
+from picks_manager.models import Map, Brawler
 from homepage.views import get_top_brawlers, get_top_brawlers_regression
+from picks_manager.views import ManageDB
 import os
 import subprocess
 import os
@@ -21,3 +22,10 @@ class MainLogicTest(TestCase):
     def test_get_top_brawlers_regression(self):
         my_map = Map.objects.first()
         get_top_brawlers_regression(my_map, 48)
+
+
+    def test_brawler_counterability(self):
+        brawler = Brawler.objects.get(brawler_name = "Sprout")
+        ManageDB().update_brawlers_counterability(brawler)
+        self.assertNotEqual(brawler.counterability, 0.0)
+

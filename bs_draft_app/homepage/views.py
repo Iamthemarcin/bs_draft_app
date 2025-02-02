@@ -6,7 +6,7 @@ import os
 import random
 import json
 from django.conf import settings
-from picks_manager.models import Map, WinRate, Brawler, WinRateSerializer, BrawlerClass, HeadToHead
+from picks_manager.models import Map, WinRate, Brawler, WinRateSerializer, BrawlerClass, HeadToHead, Synergy
 from django.http import JsonResponse
 from picks_manager.views import ManageDB
 
@@ -233,6 +233,27 @@ def calculate_counter_score(top_brawler, enemy_team, curr_map):
 
     return counter_score
 
+def calculate_synergy_score(top_brawler, players_team, curr_map):
+    """Calculate synergy score for every top brawler (win_rate object) based on picked team mate brawlers"""
+    top_brawler_name = str(top_brawler.brawler_name)
+    synergy_score = 0
+    for friendly_brawler_name in players_team:
+        if top_brawler_name < friendly_brawler_name:
+            pair = [top_brawler_name, friendly_brawler_name]
+        else:
+            pair = [friendly_brawler_name, top_brawler_name]
+
+        try:
+            synergy = Synergy.objects.get(
+                brawler_a=pair[0], brawler_b=pair[1], map=curr_map)
+        except Synergy.DoesNotExist:
+            continue
+        average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
+        synergy_win_rate = synergy.win_rate_together
+        synergy_score += synergy_win_rate - average_win_rate_on_map
+
+    return synergy_score
+
 
 def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
 
@@ -248,8 +269,6 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
         if curr_map_mode == "Gem Grab":
             gem_grab_update_viability(top_brawlers)
 
-        top_brawlers = sorted(
-            top_brawlers, key=lambda o: o.viability, reverse=True)
 
     # THIS PART IS BASED ON REGRESSION LOGIC
     else:
@@ -259,9 +278,12 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
         # What I need here is all head to heads with correct map. Top brawler is a WinRate object.
         for top_brawler in top_brawlers:
             top_brawler.counter_score = calculate_counter_score(top_brawler, enemy_team, curr_map)
-        for top_brawler in top_brawlers:
-            print(top_brawler.brawler_name, top_brawler.counter_score)
+            top_brawler.synergy_score = calculate_synergy_score(top_brawler, players_team, curr_map)
+            top_brawler.viability += top_brawler.counter_score + top_brawler.synergy_score
 
+    # AFTERMATH
+    top_brawlers = sorted(
+        top_brawlers, key=lambda o: o.viability, reverse=True)
     for top_brawler in top_brawlers:
         top_brawler.use_rate = round(top_brawler.use_rate * 100, 2)
         top_brawler.win_rate = round(
@@ -275,6 +297,7 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
 
 def index(request):
     # this is here so i can trigger stuff from picksmanager views manually when debugging.
+
     path = '{}/images/brawlers/'.format(settings.STATICFILES_DIRS[0])
     img_list = os.listdir(path)
     half = len(img_list)//2
@@ -291,6 +314,8 @@ def index(request):
     mode_icon_link = chosen_map_obj.mode_name.mode_icon
     map_icon_link = chosen_map_obj.image_url
     val = URLValidator()
+    # Sometimes the maps disappear when I mess with the database too much. This makes sure they are always
+    # there without me having to manually check
     try:
         val(map_icon_link)
     except ValidationError:
@@ -302,6 +327,10 @@ def index(request):
     context = {'top_row': top_row, 'bottom_row': bottom_row, 'mode_icon_link': mode_icon_link, 'maps': maps,
                'chosen_mode': chosen_mode, 'chosen_map': chosen_map, 'top_brawlers': top_brawlers_regression, 'maps_per_column': maps_per_column,
                'columns': columns}
+
+    # THIS SECTION IS FOR TEMPORARY CODE FOR LAZY TESTING. REMOVE ANYTHING BELOW ASIDE FROM RETURN STATEMENT IF YOU SEE IT!!
+    ManageDB().update_brawlers_counterability()
+
     return render(request, "homepage.html", context)
 
 
@@ -314,10 +343,10 @@ def map_change(request):
     except ValidationError:
         ManageDB().update_map_pics()
 
-    top_brawlers = get_top_brawlers(chosen_map.map_name, 16)
+    # top_brawlers = get_top_brawlers(chosen_map.map_name, 16)
     top_brawlers_regression = get_top_brawlers_regression(chosen_map, 16)
 
-    serializer = WinRateSerializer(top_brawlers, many=True)
+    serializer = WinRateSerializer(top_brawlers_regression, many=True)
     return JsonResponse({'brawlers': serializer.data, 'map_src': chosen_map.image_url}, safe=False)
 
 
@@ -325,12 +354,12 @@ def brawler_pick(request):
     brawler_data = json.loads(request.body)['brawler_data']
     map_name = json.loads(request.body)['map_name']
     picked_brawlers = list(brawler_data.values())
-    top_brawlers = get_top_brawlers(
-        map_name, 16, picked_brawlers=picked_brawlers)
+    # top_brawlers = get_top_brawlers(
+    #     map_name, 16, picked_brawlers=picked_brawlers)
     top_brawlers_regression = get_top_brawlers_regression(
         map_name, 16, picked_brawlers=picked_brawlers)
 
-    top_brawlers_serializer = WinRateSerializer(top_brawlers, many=True)
+    top_brawlers_serializer = WinRateSerializer(top_brawlers_regression, many=True)
 
     context = {'brawler_data': brawler_data, 'map_name': map_name,
                'top_brawlers': top_brawlers_serializer.data}

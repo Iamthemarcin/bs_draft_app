@@ -90,6 +90,7 @@ class Brawler(models.Model):
     gem_carrier = models.CharField(max_length=6, default="no")
     objects = BrawlerManager()
 
+
     def __str__(self):
         return self.brawler_name
 
@@ -116,7 +117,9 @@ class WinRate(models.Model):
     use_rate = models.FloatField(validators=PERCENTAGE_VALIDATOR)
     games_played = models.IntegerField()
     games_won = models.IntegerField()
+    counterability = models.FloatField(default = 0.0)
     objects = WinRateQuerySet.as_manager()
+
     def __str__(self):
         return self.map_name.map_name + ', ' + self.brawler_name.brawler_name
 

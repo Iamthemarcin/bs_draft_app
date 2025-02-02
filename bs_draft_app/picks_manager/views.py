@@ -14,6 +14,7 @@ import aiohttp
 from contextlib import contextmanager
 
 
+
 # Functions below are used to populate and manage the database from Brawlify and official Brawlstars APIs.
 """ORDER OF OPERATIONS WHEN NO ITEMS IN DB:
 0. update_brawler_classes
@@ -237,6 +238,53 @@ class ManageDB:
             image.save(
                 '{}/images/brawlers/{}.png'.format(settings.STATICFILES_DIRS[0], brawler['name']), 'PNG')
         return HttpResponse(contents, content_type='image/png')
+
+    def update_brawlers_counterability(self, brawler = None):
+
+        def check_brawler_counterability(brawler, map):
+            all_h2h_objects = HeadToHead.objects.filter(brawler_a = brawler, map_name = map) | HeadToHead.objects.filter(brawler_b = brawler, map_name = map)
+            try :
+                win_rate_obj = WinRate.objects.get(brawler_name = brawler, map_name = map)
+            except WinRate.DoesNotExist:
+                return
+            avg_win_rate = win_rate_obj.games_won/win_rate_obj.games_played
+            MAD_score = 0
+            positive_win_rates = 0
+            for h2h_object in all_h2h_objects:
+                brawler_positions_in_order = 1
+                if h2h_object.brawler_a != brawler:
+                    brawler_positions_in_order = 0
+                win_rate_diff = avg_win_rate - h2h_object.win_rate_a
+                score = win_rate_diff if brawler_positions_in_order else 1 - win_rate_diff
+                # Only take the negative results in scoring, because nani just counters everyone
+                # on shooting star and yet it had a high score which is stupid.
+                if score < 0:
+                    positive_win_rates += 1
+                    continue
+                MAD_score += score
+            # Make sure it's not divided by zero.
+            MAD_score /= len(all_h2h_objects) + 1
+            win_rate_obj.counterability = (win_rate_obj.counterability + MAD_score)/2
+            win_rate_obj.save()
+            return win_rate_obj.counterability
+        # Specified only one brawler for testing. The test map is always gonna be Shooting Star,
+        # since it's the easiest to tell when something is wrong there based on game knowledge.
+
+        if type(brawler) is Brawler:
+            map = Map.objects.get(map_name = "Shooting Star")
+            counterability = check_brawler_counterability(brawler, map)
+            print(f'{brawler.brawler_name} counterability score is: {counterability} on the {map.map_name} map')
+            return
+
+        # Updating all brawlers
+        all_brawlers = list(Brawler.objects.all())
+        all_maps = list(Map.objects.all())
+
+        # Triple for loop. 24 maps, around 60 brawlers, 60 h2h per map for each brawler. 86k iterations (max) in total. Might be much?
+        for map in all_maps:
+            for brawler in all_brawlers:
+                check_brawler_counterability(brawler, map)
+
 
     def get_player_tags(self):
         x = static('misc/country_codes')
