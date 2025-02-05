@@ -19,7 +19,7 @@ for me in register_me:
 # Register your models here.
 @admin.register(WinRate)
 class WinRateAdmin(admin.ModelAdmin):
-    list_display = ('brawler_name', 'map_name', 'use_rate', 'games_played', 'games_won')
+    list_display = ('brawler_name', 'map_name', 'use_rate', 'games_played', 'games_won', 'counterability')
     list_filter = ('brawler_name', 'map_name')
     ordering = ['brawler_name__brawler_name']
 

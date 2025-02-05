@@ -230,8 +230,9 @@ def calculate_counter_score(top_brawler, enemy_team, curr_map):
         average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
         head_to_head_win_rate = h2h.win_rate_a if not shuffled else 1 - h2h.win_rate_a
         counter_score += head_to_head_win_rate - average_win_rate_on_map
+    average_counter_score = counter_score/len(enemy_team)
 
-    return counter_score
+    return average_counter_score
 
 def calculate_synergy_score(top_brawler, players_team, curr_map):
     """Calculate synergy score for every top brawler (win_rate object) based on picked team mate brawlers"""
@@ -251,8 +252,9 @@ def calculate_synergy_score(top_brawler, players_team, curr_map):
         average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
         synergy_win_rate = synergy.win_rate_together
         synergy_score += synergy_win_rate - average_win_rate_on_map
+    average_synergy_score = synergy_score/len(players_team)
 
-    return synergy_score
+    return average_synergy_score
 
 
 def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
@@ -274,12 +276,16 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
     else:
         players_team, enemy_team = divide_into_teams(picked_brawlers)
         top_brawlers = WinRate.objects.filter(map_name__map_name=map).calc_viability().order_by('-viability').exclude(
-            brawler_name__in=picked_brawlers)[:ammount*3]  # map_name is foreign key to map object which has a map_name attr GET PRANKED myself
+            brawler_name__in=picked_brawlers)[:ammount*3]  # map_name is foreign key to map object which has a map_name attr cringe
         # What I need here is all head to heads with correct map. Top brawler is a WinRate object.
+        counter_scores = []
         for top_brawler in top_brawlers:
             top_brawler.counter_score = calculate_counter_score(top_brawler, enemy_team, curr_map)
+            counter_scores.append(top_brawler.counter_score)
             top_brawler.synergy_score = calculate_synergy_score(top_brawler, players_team, curr_map)
             top_brawler.viability += top_brawler.counter_score + top_brawler.synergy_score
+
+        print(counter_scores)
 
     # AFTERMATH
     top_brawlers = sorted(
@@ -329,7 +335,7 @@ def index(request):
                'columns': columns}
 
     # THIS SECTION IS FOR TEMPORARY CODE FOR LAZY TESTING. REMOVE ANYTHING BELOW ASIDE FROM RETURN STATEMENT IF YOU SEE IT!!
-    ManageDB().update_brawlers_counterability()
+    #ManageDB().update_brawlers_counterability()
 
     return render(request, "homepage.html", context)
 

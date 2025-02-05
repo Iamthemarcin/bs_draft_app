@@ -92,6 +92,9 @@ class ManageDB:
                 self.search_response(
                     i, search_word, chosen_mode, results, return_parent)
 
+
+
+
     def update_brawler_classes(self):
         class_counters = {'Assassin': ['Controller', 'Tank'], 'Artillery': 'Assassin', 'Controller': 'Artillery',
                           'Marksman': 'Assassin', 'Damage Dealer': 'Marksman', 'Support': ['Tank', 'Assassin'], 'Tank': ['Damage Dealer', 'Controller']}
@@ -261,10 +264,16 @@ class ManageDB:
                 if score < 0:
                     positive_win_rates += 1
                     continue
+
                 MAD_score += score
             # Make sure it's not divided by zero.
             MAD_score /= len(all_h2h_objects) + 1
-            win_rate_obj.counterability = (win_rate_obj.counterability + MAD_score)/2
+            # Squash outliers to be 2. Helps with standarizing data.
+            if MAD_score > 2:
+                MAD_score = 2
+
+            # Squash data into 0 to 1 range by dividing it by 2
+            win_rate_obj.counterability = MAD_score/2
             win_rate_obj.save()
             return win_rate_obj.counterability
         # Specified only one brawler for testing. The test map is always gonna be Shooting Star,
@@ -586,6 +595,8 @@ class ManageDB:
     # and i dont want to make it execute longer. just run this after updating wr.
 
 
+
+
 class CleaningDB:
     @staticmethod
     def clean_up_the_maps():
@@ -608,7 +619,6 @@ class CleaningDB:
                 win_rate_obj.use_rate = actual_use_rate
                 win_rate_obj.save()
         return
-
 
 # Code for profiling on debug container
 if os.getenv('DEBUGPY_DJANGO'):
