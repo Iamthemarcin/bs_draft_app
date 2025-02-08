@@ -594,6 +594,9 @@ class ManageDB:
     # i could make another if statement in the update_map_list function to not add them in the first place but that place is a mess
     # and i dont want to make it execute longer. just run this after updating wr.
 
+class TrainingDataCollector(ManageDB):
+    def update_training_data(self):
+        pass
 
 
 

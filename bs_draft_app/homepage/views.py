@@ -9,6 +9,9 @@ from django.conf import settings
 from picks_manager.models import Map, WinRate, Brawler, WinRateSerializer, BrawlerClass, HeadToHead, Synergy
 from django.http import JsonResponse
 from picks_manager.views import ManageDB
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def check_counterability_and_pick_rate(top_brawlers, picked_brawlers=None):
@@ -213,7 +216,7 @@ def get_top_brawlers(map, ammount, picked_brawlers=None):
 def calculate_counter_score(top_brawler, enemy_team, curr_map):
     """Calculate counter score for every pre selected top brawler based on picked enemy brawlers"""
     top_brawler_name = str(top_brawler.brawler_name)
-    counter_score = 0
+    counter_score = average_counter_score = 0
     for enemy_brawler_name in enemy_team:
         if top_brawler_name < enemy_brawler_name:
             pair = [top_brawler_name, enemy_brawler_name]
@@ -230,14 +233,17 @@ def calculate_counter_score(top_brawler, enemy_team, curr_map):
         average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
         head_to_head_win_rate = h2h.win_rate_a if not shuffled else 1 - h2h.win_rate_a
         counter_score += head_to_head_win_rate - average_win_rate_on_map
-    average_counter_score = counter_score/len(enemy_team)
+
+    if enemy_team:
+        average_counter_score = counter_score/len(enemy_team)
+
 
     return average_counter_score
 
 def calculate_synergy_score(top_brawler, players_team, curr_map):
     """Calculate synergy score for every top brawler (win_rate object) based on picked team mate brawlers"""
     top_brawler_name = str(top_brawler.brawler_name)
-    synergy_score = 0
+    synergy_score = average_synergy_score = 0
     for friendly_brawler_name in players_team:
         if top_brawler_name < friendly_brawler_name:
             pair = [top_brawler_name, friendly_brawler_name]
@@ -252,7 +258,9 @@ def calculate_synergy_score(top_brawler, players_team, curr_map):
         average_win_rate_on_map = top_brawler.games_won/top_brawler.games_played
         synergy_win_rate = synergy.win_rate_together
         synergy_score += synergy_win_rate - average_win_rate_on_map
-    average_synergy_score = synergy_score/len(players_team)
+
+    if players_team:
+        average_synergy_score = synergy_score/len(players_team)
 
     return average_synergy_score
 
@@ -285,7 +293,7 @@ def get_top_brawlers_regression(map, ammount, picked_brawlers=None):
             top_brawler.synergy_score = calculate_synergy_score(top_brawler, players_team, curr_map)
             top_brawler.viability += top_brawler.counter_score + top_brawler.synergy_score
 
-        print(counter_scores)
+        logger.debug(counter_scores)
 
     # AFTERMATH
     top_brawlers = sorted(
